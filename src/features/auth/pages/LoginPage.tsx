@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Mail, Lock } from 'lucide-react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 export default function Login() {
@@ -108,3 +108,4 @@ export default function Login() {
     </div>
   );
 }
+

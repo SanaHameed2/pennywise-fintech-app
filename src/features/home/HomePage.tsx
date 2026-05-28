@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Shield, Zap, TrendingUp, CreditCard, Users, Star } from 'lucide-react';
-import { Link } from 'react-router';
-import Footer from '../components/Footer';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const fadeIn = {
@@ -180,7 +179,8 @@ export default function Home() {
         </div>
       </motion.section>
 
-      <Footer />
+
     </div>
   );
 }
+

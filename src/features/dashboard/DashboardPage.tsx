@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { Wallet, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import Footer from '../components/Footer';
 
 export default function Dashboard() {
   const chartData = [
@@ -225,3 +224,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

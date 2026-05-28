@@ -1,6 +1,6 @@
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router-dom';
 import { Sun, Moon, Menu, X } from 'lucide-react';
-import { useDarkMode } from '../contexts/DarkModeContext';
+import { useDarkMode } from '../../../shared/hooks/useDarkMode';
 import { useState } from 'react';
 
 export default function Navbar() {
@@ -112,3 +112,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
