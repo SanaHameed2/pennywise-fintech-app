@@ -1,33 +1,45 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { authApi } from '../../../services/api/auth';
 
-export default function Signup() {
+export default function SignupPage() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === confirmPassword) {
-      navigate('/dashboard');
-    }
-  };
+    setError('');
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await authApi.register(name, email, password);
+      localStorage.setItem('token', response.data.token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 py-12">
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-md w-full"
       >
@@ -110,29 +122,18 @@ export default function Signup() {
               </div>
             </div>
 
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                className="w-4 h-4 mt-1 text-emerald-500 border-gray-300 rounded focus:ring-emerald-500"
-                required
-              />
-              <label className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                I agree to the{' '}
-                <a href="#" className="text-emerald-500 hover:text-emerald-600">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-emerald-500 hover:text-emerald-600">
-                  Privacy Policy
-                </a>
-              </label>
-            </div>
+            {error && (
+              <div className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg transition-all duration-300 hover:shadow-lg"
+              disabled={loading}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
@@ -149,4 +150,3 @@ export default function Signup() {
     </div>
   );
 }
-

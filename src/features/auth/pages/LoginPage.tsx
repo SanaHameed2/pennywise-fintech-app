@@ -1,29 +1,37 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { authApi } from '../../../services/api/auth';
 
-export default function Login() {
+export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
-  };
+    setError('');
+    setLoading(true);
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+    try {
+      const response = await authApi.login(email, password);
+      localStorage.setItem('token', response.data.token);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 py-12">
       <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={fadeIn}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-md w-full"
       >
@@ -32,7 +40,7 @@ export default function Login() {
             Welcome Back
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Log in to access your account
+            Login to your Pennywise account
           </p>
         </div>
 
@@ -72,26 +80,18 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-emerald-500 border-gray-300 rounded focus:ring-emerald-500"
-                />
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                  Remember me
-                </span>
-              </label>
-              <a href="#" className="text-sm text-emerald-500 hover:text-emerald-600">
-                Forgot password?
-              </a>
-            </div>
+            {error && (
+              <div className="bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg transition-all duration-300 hover:shadow-lg"
+              disabled={loading}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-lg transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Log In
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 
@@ -108,4 +108,3 @@ export default function Login() {
     </div>
   );
 }
-

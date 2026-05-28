@@ -12,16 +12,12 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Backend server is running!',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: 'success', message: 'Backend server is running!' });
 });
 
+// Auth routes
 app.use('/api/auth', authRoutes);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📝 Health check: http://localhost:${PORT}/api/health`);
 });
