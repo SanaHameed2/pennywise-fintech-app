@@ -1,0 +1,239 @@
+/* ✅ @import SAB SE PEHLE */
+@import '../default_shadcn_theme.css';
+
+/* ✅ Tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-dark: #0a0a0a;
+    --card-glass: rgba(255, 255, 255, 0.05);
+    --card-glass-hover: rgba(255, 255, 255, 0.08);
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --primary-orange: #ff6b35;
+    --primary-cyan: #00d4ff;
+    --coral: #FF7F50;
+    --coral-hover: #e86a3a;
+  }
+
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-[#0a0a0a] text-slate-100 antialiased selection:bg-[#FF7F50]/20 selection:text-[#FF7F50];
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 17px;        /* Bada font size */
+    line-height: 1.7;       /* Zyada breathing room */
+    font-variant-numeric: lining-nums;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: #ffffff;         
+  }
+
+  button, input, textarea, select {
+    font: inherit;
+  }
+
+  input, textarea, select {
+    font-size: 16px;
+  }
+
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:bg-white/10 hover:border-white/20;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #ff6b35 0%, #ffb347 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b35 0%, #ffb347 100%);
+    @apply px-8 py-4 rounded-2xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/25;
+  }
+
+  .btn-secondary {
+    @apply px-8 py-4 rounded-2xl font-semibold text-white transition-all duration-300 border border-white/20 bg-white/5 backdrop-blur-xl hover:bg-white/10;
+  }
+}
+
+/* Custom layout behaviors */
+.ambient-glow {
+  background: radial-gradient(circle at center, rgba(255, 127, 80, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.grid-border-clean {
+  @apply border border-white/5 hover:border-white/10 transition-all duration-300;
+}
+
+/* ─── Premium Coral (#FF7F50) Engineering Utilities ─── */
+
+.coral-btn {
+  @apply bg-[#FF7F50] text-white font-medium px-5 py-2.5 rounded-xl transition-all duration-200 hover:bg-[#e86a3a] active:scale-[0.98] border-none;
+}
+
+.coral-outline {
+  @apply border border-[#FF7F50] text-[#FF7F50] bg-transparent font-medium px-5 py-2.5 rounded-xl transition-all duration-200 hover:bg-[#FF7F50]/10 active:scale-[0.98];
+}
+
+.coral-ghost {
+  @apply text-[#FF7F50] bg-transparent font-medium px-5 py-2.5 rounded-xl transition-all duration-200 hover:bg-[#FF7F50]/10 active:scale-[0.98];
+}
+
+.coral-link {
+  @apply text-[#FF7F50] hover:text-[#e86a3a] transition-colors duration-200 no-underline font-medium;
+}
+
+.coral-focus {
+  @apply focus:outline-none focus:ring-2 focus:ring-[#FF7F50] focus:ring-offset-2 focus:ring-offset-[#060608];
+}
+
+.coral-border {
+  @apply border border-[#FF7F50]/30;
+}
+
+.text-coral {
+  color: #FF7F50;
+}
+
+.bg-coral {
+  background-color: #FF7F50;
+}
+
+.card-flat {
+  @apply bg-[#0a0a0a] border border-white/10 rounded-2xl p-6;
+}
+
+.card-coral {
+  @apply bg-[#0a0a0a] border border-[#FF7F50]/30 rounded-2xl p-6;
+}
+
+.divider-coral {
+  @apply border-t border-[#FF7F50]/20 my-4;
+}
+
+.divider-subtle {
+  @apply border-t border-white/5 my-4;
+}
+
+.input-flat {
+  @apply bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/55 focus:outline-none focus:border-[#FF7F50] transition-colors duration-200;
+}
+
+.badge-coral {
+  @apply bg-[#FF7F50]/10 text-[#FF7F50] px-3 py-1 rounded-full text-xs font-medium border border-[#FF7F50]/20;
+}
+
+.status-dot-coral {
+  @apply w-2.5 h-2.5 rounded-full bg-[#FF7F50] inline-block;
+}
+
+/* ─── Scrollbar & Selection ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #FF7F50;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #e86a3a;
+}
+
+::selection {
+  background: rgba(255, 127, 80, 0.2);
+  color: #FF7F50;
+}
+
+::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.55) !important;
+  opacity: 1;
+}
+
+/* Spinners */
+.spinner-coral {
+  @apply w-8 h-8 border-2 border-[#FF7F50]/20 border-t-[#FF7F50] rounded-full animate-spin;
+}
+
+/* ==========================================
+   🚨 ULTIMATE TYPOGRAPHY & CONTRAST FIX 🚨
+   ========================================== */
+
+/* 1. Force all text to be highly readable (Pure Bright White) */
+body, p, span, div, li, a, label, input, textarea {
+  color: #f8fafc !important; /* Slate-50 */
+}
+
+/* 2. Force larger font sizes for readability */
+body {
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+
+/* Paragraphs aur spans ko force se bada karein */
+p, span:not(.text-coral):not(.text-\[\#FF7F50\]):not(.text-green-400):not(.text-red-500), li, a {
+  font-size: 1.05rem !important; /* Taqreeban 17px */
+  line-height: 1.7 !important;
+}
+
+/* 3. Make headings pop (Pure White and Bold) */
+h1, h2, h3, h4, h5, h6 {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* 4. Restore specific colors that should NOT be white */
+.text-coral, .text-\[\#FF7F50\], .text-orange-500, .text-orange-400 {
+  color: #FF7F50 !important;
+}
+.text-green-400, .text-green-500, .text-emerald-400, .text-emerald-500 {
+  color: #4ade80 !important;
+}
+.text-red-400, .text-red-500 {
+  color: #f87171 !important;
+}
+
+/* 5. Override Tailwind's dark classes completely */
+.text-gray-300, .text-gray-400, .text-gray-500, .text-gray-600,
+.text-slate-300, .text-slate-400, .text-slate-500, .text-slate-600,
+.text-zinc-400, .text-zinc-500, .text-zinc-600,
+.text-muted-foreground, .text-white\/30, .text-white\/40, .text-white\/50, .text-white\/60 {
+  color: #f8fafc !important;
+}
+
+/* 6. Force opacity to 100% on text elements */
+.opacity-30, .opacity-40, .opacity-50, .opacity-60, .opacity-70, .opacity-80 {
+  opacity: 1 !important;
+}

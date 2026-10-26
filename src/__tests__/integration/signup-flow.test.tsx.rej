@@ -1,0 +1,11 @@
+diff a/src/__tests__/integration/signup-flow.test.tsx b/src/__tests__/integration/signup-flow.test.tsx	(rejected hunks)
+@@ -28,7 +28,8 @@
+ 
+ // ✅ Mock useAuth hook
+ const mockSignup = vi.fn();
+-vi.mock('../../hooks/useAuth', () => ({
++vi.mock('../../hooks/useAuth', async (importActual) => ({
++  ...(await importActual<typeof import('../../hooks/useAuth')>()),
+   useAuth: () => ({
+     signup: mockSignup,
+     user: null,
