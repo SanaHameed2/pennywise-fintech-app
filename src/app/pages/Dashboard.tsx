@@ -16,8 +16,8 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { useAuth } from '../../hooks/useAuth'; // ✅ Real Auth
-import { useSupabaseData } from '../../hooks/useSupabaseData'; // ✅ Real Data
+import { useAuth } from '../../hooks/useAuth';
+import { useSupabaseData } from '../../hooks/useSupabaseData';
 import { formatMoney } from '../../utils/money'; // ✅ Safe Money Formatter
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -57,7 +57,7 @@ const stagger = {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Mock Data for Charts (Baaki dashboard real hai)
+// ✅ Mock Data for Charts
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const generateChartData = (currentBalance: number) => [
   { month: 'Jan', balance: currentBalance * 0.65, spending: 45000, income: 52000 },
@@ -182,7 +182,6 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
         </div>
       </div>
       <span className={`text-sm font-bold ${isIncome ? 'text-[#34D399]' : 'text-[#EF4444]'}`}>
-        {/* ✅ Use formatMoney instead of parseFloat */}
         {isIncome ? '+' : '-'} Rs. {formatMoney(transaction.amount)}
       </span>
     </motion.div>
@@ -255,7 +254,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // ✅ Fetch real data from Supabase
   const { wallet, transactions: rawTransactions, loading } = useSupabaseData();
   
   const [showBalance, setShowBalance] = useState(true);
@@ -268,11 +266,11 @@ export default function Dashboard() {
   const initials = displayName.substring(0, 2).toUpperCase();
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ✅ Dynamic Financial Data (Warnings Fixed Here)
+  // ✅ Dynamic Financial Data
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const pkrBalance = wallet?.balance || 0;
   
-  // ✅ Wrapped in useMemo to prevent ESLint exhaustive-deps warning
+  // ✅ Prevent ESLint exhaustive-deps warning
   const liveTransactions = useMemo(() => rawTransactions || [], [rawTransactions]);
 
   const totalIncome = useMemo(() => 
@@ -285,7 +283,14 @@ export default function Dashboard() {
 
   const dynamicChartData = useMemo(() => generateChartData(pkrBalance), [pkrBalance]);
   const savings = useMemo(() => totalIncome - totalExpense, [totalIncome, totalExpense]);
-  const growth = useMemo(() => ((pkrBalance - 420000) / 420000 * 100).toFixed(1), [pkrBalance]);
+  
+  // ✅ Dynamic Growth Calculation (Fixed -99.0% issue)
+  const growth = useMemo(() => {
+    if (totalIncome === 0) return '0.0';
+    const netSavings = totalIncome - totalExpense;
+    return ((netSavings / totalIncome) * 100).toFixed(1);
+  }, [totalIncome, totalExpense]);
+
   const totalExpenses = useMemo(() => expenseCategories.reduce((sum, cat) => sum + cat.amount, 0), []);
 
   const handleToggleBalance = useCallback(() => {
