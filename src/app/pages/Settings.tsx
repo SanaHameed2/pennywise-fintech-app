@@ -6,8 +6,11 @@ import {
   CheckCircle2, BellRing
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth'; // ✅ Real Auth for profile card
 import { motion, AnimatePresence } from 'framer-motion';
+
+// ✅ IMPORT the REAL MFA SecurityTab component
+import SecurityTab from '../../features/settings/components/SecurityTab';
 
 type TabType = 'profile' | 'security' | 'preferences';
 
@@ -136,6 +139,10 @@ ToggleSwitch.displayName = 'ToggleSwitch';
 // ✅ React.memo: ProfileTab
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const ProfileTab = React.memo(() => {
+  const { user } = useAuth();
+  const displayName = user?.email?.split('@')[0] || 'User';
+  const capitalizedName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -145,7 +152,7 @@ const ProfileTab = React.memo(() => {
           </label>
           <input
             type="text"
-            value="John Doe"
+            defaultValue={capitalizedName}
             className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition"
           />
         </div>
@@ -155,8 +162,9 @@ const ProfileTab = React.memo(() => {
           </label>
           <input
             type="email"
-            value="john.doe@email.com"
-            className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition"
+            defaultValue={user?.email || ''}
+            disabled
+            className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-gray-400 cursor-not-allowed focus:outline-none transition"
           />
         </div>
       </div>
@@ -167,7 +175,7 @@ const ProfileTab = React.memo(() => {
         </label>
         <input
           type="tel"
-          value="+1 (555) 123-4567"
+          placeholder="+92 300 1234567"
           className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition"
         />
       </div>
@@ -180,65 +188,6 @@ const ProfileTab = React.memo(() => {
 });
 
 ProfileTab.displayName = 'ProfileTab';
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: SecurityTab
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const SecurityTab = React.memo(() => {
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
-            Current Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter current password"
-            className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
-            New Password
-          </label>
-          <input
-            type="password"
-            placeholder="Enter new password"
-            className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">
-          Confirm New Password
-        </label>
-        <input
-          type="password"
-          placeholder="Confirm new password"
-          className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition"
-        />
-      </div>
-
-      <button className="px-6 py-2.5 rounded-lg bg-[#FF7F50] text-black font-semibold text-sm hover:bg-[#ff8f66] transition-colors">
-        Update Password
-      </button>
-
-      <div className="pt-4 border-t border-white/10">
-        <SettingsCard
-          icon={CheckCircle2}
-          title="Two-Factor Authentication"
-          description="Add an extra layer of security"
-          color="text-emerald-400"
-          bgColor="bg-emerald-500/10"
-        />
-      </div>
-    </div>
-  );
-});
-
-SecurityTab.displayName = 'SecurityTab';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ✅ React.memo: PreferencesTab
@@ -265,8 +214,7 @@ const PreferencesTab = React.memo(() => {
         </label>
         <select className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition">
           <option value="en">English</option>
-          <option value="es">Spanish</option>
-          <option value="fr">French</option>
+          <option value="ur">Urdu</option>
         </select>
       </div>
 
@@ -275,10 +223,8 @@ const PreferencesTab = React.memo(() => {
           Currency
         </label>
         <select className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition">
-          <option value="usd">USD ($)</option>
-          <option value="eur">EUR (€)</option>
-          <option value="gbp">GBP (£)</option>
           <option value="pkr">PKR (Rs)</option>
+          <option value="usd">USD ($)</option>
         </select>
       </div>
 
@@ -295,16 +241,18 @@ PreferencesTab.displayName = 'PreferencesTab';
 // ✅ Main Settings Component
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function Settings() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth(); // ✅ Get real user
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
 
-  // ✅ useCallback: Handle tab change
+  const displayName = user?.email?.split('@')[0] || 'User';
+  const capitalizedName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+  const initials = capitalizedName.substring(0, 2).toUpperCase();
+
   const handleTabChange = useCallback((tabId: TabType) => {
     setActiveTab(tabId);
   }, []);
 
-  // ✅ useCallback: Handle logout
   const handleLogout = useCallback(async () => {
     const result = await logout();
     if (result.success) {
@@ -312,19 +260,16 @@ export default function Settings() {
     }
   }, [logout, navigate]);
 
-  // ✅ useCallback: Navigate to cards
   const handleNavigateToCards = useCallback(() => {
     navigate('/cards');
   }, [navigate]);
 
-  // ✅ useMemo: Tab definitions
   const tabs = useMemo(() => [
     { id: 'profile' as const, label: 'Profile', icon: User, description: 'Update your personal information' },
     { id: 'security' as const, label: 'Security', icon: Shield, description: 'Password and account security' },
     { id: 'preferences' as const, label: 'Preferences', icon: Sliders, description: 'Notifications and app settings' },
   ], []);
 
-  // ✅ useMemo: Render tabs
   const tabList = useMemo(() => {
     return tabs.map((tab) => (
       <TabButton
@@ -336,13 +281,13 @@ export default function Settings() {
     ));
   }, [tabs, activeTab, handleTabChange]);
 
-  // ✅ useMemo: Render active tab content
+  // ✅ Render active tab content
   const tabContent = useMemo(() => {
     switch (activeTab) {
       case 'profile':
         return <ProfileTab />;
       case 'security':
-        return <SecurityTab />;
+        return <SecurityTab />; // ✅ Uses the imported real MFA SecurityTab
       case 'preferences':
         return <PreferencesTab />;
       default:
@@ -377,19 +322,20 @@ export default function Settings() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#FF7F50] to-[#E05A2B] flex items-center justify-center text-2xl font-bold text-white">
-                JD
+                {initials}
               </div>
               <button className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#FF7F50] text-black flex items-center justify-center hover:bg-[#ff8f66] transition-colors">
                 <Camera className="w-3.5 h-3.5" />
               </button>
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white">John Doe</h2>
-              <p className="text-gray-400">john.doe@email.com</p>
+              <h2 className="text-xl font-semibold text-white">{capitalizedName}</h2>
+              <p className="text-gray-400">{user?.email}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
                   Verified
                 </span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               </div>
             </div>
           </div>

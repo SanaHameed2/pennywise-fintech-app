@@ -3,12 +3,13 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Shield, Fingerprint, CheckCircle2, AlertCircle,
-  Lock, Unlock, Eye, EyeOff, RefreshCw,
+  Lock, Unlock, Eye, EyeOff
 } from 'lucide-react';
 import Footer from '../components/Footer';
+import MfaSetup from '../components/MfaSetup'; // ✅ Import MFA Component
 
 /* ─── Types ─── */
-type AuthState = 'choose' | 'pin' | 'biometric' | 'success';
+type AuthState = 'choose' | 'pin' | 'mfa' | 'success';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ✅ React.memo: PinDots
@@ -95,9 +96,7 @@ function PinScreen({ onSuccess }: { onSuccess: () => void }) {
   const [showPin, setShowPin] = useState(false);
   const CORRECT = '123456';
 
-  // ✅ Lock countdown — event-driven via setInterval; setState inside the
-  //    interval callback is fine (that's an external system callback, not the
-  //    effect body itself).
+  // ✅ Lock countdown
   useEffect(() => {
     if (!locked) return;
     const interval = setInterval(() => {
@@ -115,7 +114,6 @@ function PinScreen({ onSuccess }: { onSuccess: () => void }) {
     return () => clearInterval(interval);
   }, [locked]);
 
-  // ✅ Handle key press
   const handleKey = useCallback((k: string) => {
     if (locked) return;
     if (k === '⌫') {
@@ -138,7 +136,6 @@ function PinScreen({ onSuccess }: { onSuccess: () => void }) {
     }
   }, [digits, attempts, locked, onSuccess]);
 
-  // ✅ Toggle PIN visibility
   const togglePinVisibility = useCallback(() => {
     setShowPin(prev => !prev);
   }, []);
@@ -188,114 +185,6 @@ function PinScreen({ onSuccess }: { onSuccess: () => void }) {
           <p className="text-xs text-muted-foreground">Demo PIN: <span className="font-mono font-bold text-brand">123456</span></p>
         </>
       )}
-    </div>
-  );
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Biometric Modal Component
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function BiometricModal({ open, onClose, onSuccess }: { open: boolean; onClose: () => void; onSuccess: () => void }) {
-  const [rawState, setState] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
-
-  // ✅ DERIVED state — no effect, no reset setState.
-  //    While the modal is closed, `state` is always 'idle'. The setter below
-  //    is unchanged (`setState`) so all existing calls (setState('scanning'),
-  //    setState('success'), setState('error')) keep working exactly as before.
-  //    This satisfies react-hooks/set-state-in-effect: there is no setState
-  //    inside an effect anymore.
-  const state = open ? rawState : 'idle';
-
-  // ✅ Simulate biometric scan
-  const simulateScan = useCallback(() => {
-    setState('scanning');
-    setTimeout(() => {
-      const ok = Math.random() > 0.25;
-      setState(ok ? 'success' : 'error');
-      if (ok) setTimeout(onSuccess, 800);
-    }, 2000);
-  }, [onSuccess]);
-
-  // ✅ useMemo: State config
-  const stateConfig = useMemo(() => ({
-    idle: {
-      title: 'Biometric Authentication',
-      description: 'Touch the sensor or use face recognition to authenticate',
-      showRetry: false,
-    },
-    scanning: {
-      title: 'Scanning…',
-      description: 'Hold still — reading biometric data…',
-      showRetry: false,
-    },
-    success: {
-      title: 'Identity Verified',
-      description: 'Your identity has been confirmed securely',
-      showRetry: false,
-    },
-    error: {
-      title: 'Scan Failed',
-      description: 'Could not read biometric data. Please try again.',
-      showRetry: true,
-    },
-  }), []);
-
-  const config = stateConfig[state];
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-border p-8 max-w-sm w-full text-center space-y-6"
-      >
-        <div className="relative mx-auto w-20 h-20">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors duration-500 ${
-            state === 'success' ? 'bg-income-bg' :
-            state === 'error' ? 'bg-expense-bg' :
-            state === 'scanning' ? 'bg-brand-light dark:bg-brand-dark/40' :
-            'bg-accent'
-          }`}>
-            {state === 'success' ? <CheckCircle2 className="w-10 h-10 text-income" /> :
-             state === 'error' ? <AlertCircle className="w-10 h-10 text-expense" /> :
-             <Fingerprint className={`w-10 h-10 ${state === 'scanning' ? 'text-brand animate-pulse' : 'text-muted-foreground'}`} />}
-          </div>
-          {state === 'scanning' && (
-            <div className="absolute inset-0 rounded-full border-4 border-brand/30 border-t-brand animate-spin" />
-          )}
-        </div>
-
-        <div>
-          <h3 className="text-lg font-semibold text-foreground">{config.title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{config.description}</p>
-        </div>
-
-        <div className="flex gap-3">
-          {(state === 'idle' || state === 'error') && (
-            <>
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-foreground hover:bg-accent transition-colors">
-                Cancel
-              </button>
-              <button onClick={simulateScan} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-semibold transition-colors">
-                {state === 'error' ? <><RefreshCw className="w-4 h-4" /> Retry</> : <><Fingerprint className="w-4 h-4" /> Scan Now</>}
-              </button>
-            </>
-          )}
-          {state === 'scanning' && (
-            <button onClick={onClose} className="w-full py-2.5 rounded-xl border border-border text-sm font-semibold text-foreground hover:bg-accent transition-colors">
-              Cancel
-            </button>
-          )}
-          {state === 'success' && (
-            <button onClick={onClose} className="w-full py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-semibold transition-colors">
-              Continue
-            </button>
-          )}
-        </div>
-      </motion.div>
     </div>
   );
 }
@@ -351,24 +240,24 @@ TrustBadge.displayName = 'TrustBadge';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function SecurityFlow() {
   const [authState, setAuthState] = useState<AuthState>('choose');
-  const [bioOpen, setBioOpen] = useState(false);
+  const [mfaOpen, setMfaOpen] = useState(false); // Renamed from bioOpen
 
   const handlePinSuccess = useCallback(() => {
     setAuthState('success');
   }, []);
 
-  const handleBioOpen = useCallback(() => {
-    setBioOpen(true);
-    setAuthState('biometric');
+  const handleMfaOpen = useCallback(() => {
+    setMfaOpen(true);
+    setAuthState('mfa');
   }, []);
 
-  const handleBioClose = useCallback(() => {
-    setBioOpen(false);
+  const handleMfaClose = useCallback(() => {
+    setMfaOpen(false);
     setAuthState('choose');
   }, []);
 
-  const handleBioSuccess = useCallback(() => {
-    setBioOpen(false);
+  const handleMfaSuccess = useCallback(() => {
+    setMfaOpen(false);
     setAuthState('success');
   }, []);
 
@@ -378,7 +267,7 @@ export default function SecurityFlow() {
 
   const trustBadges = useMemo(() => [
     { icon: Shield, label: '256-bit encryption' },
-    { icon: Fingerprint, label: 'Biometric ready' },
+    { icon: Fingerprint, label: 'MFA Ready' }, // Changed text
     { icon: CheckCircle2, label: 'Bank-grade security' },
   ], []);
 
@@ -414,16 +303,16 @@ export default function SecurityFlow() {
                 />
 
                 <AuthMethodButton
-                  icon={Fingerprint}
-                  title="Biometric Authentication"
-                  description="Use fingerprint or face recognition"
-                  onClick={handleBioOpen}
+                  icon={Fingerprint} 
+                  title="Authenticator App (MFA)"
+                  description="Use Google Authenticator or Authy for 2FA"
+                  onClick={handleMfaOpen}
                 />
               </div>
 
               <div className="flex items-start gap-2 p-3 bg-white/5 border border-white/[0.06] rounded-xl text-xs text-gray-400">
                 <Shield className="w-4 h-4 text-[#FF7F50] flex-shrink-0 mt-0.5" />
-                All credentials are processed locally. No biometric data is transmitted to external servers.
+                All credentials are processed locally. MFA secrets are secured via Supabase Auth.
               </div>
             </motion.div>
           )}
@@ -477,13 +366,27 @@ export default function SecurityFlow() {
           )}
         </AnimatePresence>
 
+        {/* ✅ MFA Modal Render */}
         <AnimatePresence>
-          {bioOpen && (
-            <BiometricModal
-              open={bioOpen}
-              onClose={handleBioClose}
-              onSuccess={handleBioSuccess}
-            />
+          {mfaOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-sm"
+              >
+                <MfaSetup 
+                  onComplete={handleMfaSuccess} 
+                />
+                <button 
+                  onClick={handleMfaClose} 
+                  className="w-full mt-4 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+              </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
