@@ -67,17 +67,27 @@ export function useTransferSupabase() {
     if (isAdding) throw new Error('Already adding beneficiary');
     if (!name.trim() || !iban.trim() || !bank.trim()) throw new Error('All fields are required');
 
+    // ✅ Day 16: Strict Pakistani IBAN Format Validation (24 chars)
+    // Format: PK + 2 digits + 4 uppercase letters (Bank) + 16 digits
+    const ibanRegex = /^PK\d{2}[A-Z]{4}\d{16}$/;
+    const formattedIban = iban.trim().toUpperCase();
+
+    if (!ibanRegex.test(formattedIban)) {
+      throw new Error('Invalid Pakistani IBAN. Must be 24 characters (e.g., PK36SCBL0000001123456702).');
+    }
+
     setIsAdding(true);
     setError(null);
 
     try {
       const avatar = name.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      
       const { data, error } = await supabase
         .from('beneficiaries')
         .insert([{
           user_id: user.id,
           name: name.trim(),
-          iban: iban.trim(),
+          iban: formattedIban, // ✅ Save the uppercase formatted IBAN
           bank: bank.trim(),
           avatar: avatar || '??',
         }])
@@ -124,16 +134,17 @@ export function useTransferSupabase() {
       // ✅ Generate a unique idempotency key for this specific request
       const idempotencyKey = crypto.randomUUID();
 
-      // ✅ SECURE RPC CALL with Idempotency Key
+      // ✅ SECURE RPC CALL with Idempotency Key (Limits are handled inside DB)
       const { data, error: rpcError } = await supabase.rpc('execute_transfer', {
         p_amount: amount,
         p_recipient_id: recipientId,
         p_recipient_name: recipient.name,
         p_note: note || null,
-        p_idempotency_key: idempotencyKey, // Passing the unique key
+        p_idempotency_key: idempotencyKey,
       });
 
       if (rpcError) {
+        // This will catch the Daily Limit or Per-Transaction Limit errors from DB
         throw new Error(rpcError.message);
       }
 

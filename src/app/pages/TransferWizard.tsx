@@ -124,7 +124,6 @@ function Step1({
 
   const safeBeneficiaries = useMemo(() => {
     if (Array.isArray(beneficiaries) && beneficiaries.length > 0) return beneficiaries;
-    // Fallback if empty for testing
     return [
       { id: 101, name: "Ali Ahmed", iban: "PK99VAUL0000987654321098", bank: "Pennywise Vault Network" },
       { id: 102, name: "Ahmed Khan", iban: "PK21ALFA0000123456789012", bank: "Alfalah Bank" }
@@ -160,8 +159,9 @@ function Step1({
       setNewIban('');
       setNewBank('');
       setSelected(newBeneficiary);
-    } catch {
-      alert('Failed to add beneficiary');
+    } catch (err: any) {
+      // ✅ Day 16: Show the specific IBAN validation error from the hook
+      alert(err.message || 'Failed to add beneficiary');
     } finally {
       setIsAdding(false);
     }
@@ -215,7 +215,7 @@ function Step1({
           />
           <input
             type="text"
-            placeholder="IBAN"
+            placeholder="IBAN (24 characters, e.g. PK36SCBL0000001123456702)"
             value={newIban}
             onChange={(e) => setNewIban(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7F50]/30 focus:border-[#FF7F50]"
@@ -289,7 +289,7 @@ function Step2({
   const [error, setError] = useState('');
 
   const handleContinue = useCallback(() => {
-    // ✅ Use safeParseMoney instead of parseFloat
+    // ✅ Day 15: Use safeParseMoney instead of parseFloat
     const num = safeParseMoney(amount);
     
     if (!amount || isNaN(num) || num <= 0) {
@@ -346,7 +346,7 @@ function Step2({
       <div className="bg-white/5 rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-white/50">Available balance</span>
-          {/* ✅ Use formatMoney */}
+          {/* ✅ Day 15: Use formatMoney */}
           <span className="font-semibold text-white">Rs. {formatMoney(availableBalance)}</span>
         </div>
         <div className="flex justify-between text-sm">
@@ -417,7 +417,7 @@ function Step3({
     onConfirm();
   }, [pin, onConfirm]);
 
-  // ✅ Use formatMoney
+  // ✅ Day 15: Use formatMoney
   const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
 
   return (
@@ -485,7 +485,7 @@ function Step4({
 }) {
   const [txId] = useState(() => `PW-${Date.now().toString(36).toUpperCase()}`);
   
-  // ✅ Use formatMoney
+  // ✅ Day 15: Use formatMoney
   const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
 
   return (
@@ -531,12 +531,11 @@ export default function TransferWizard() {
   const [beneficiary, setBeneficiary] = useState<Beneficiary | null>(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
-  const [liveBalance, setLiveBalance] = useState<number>(0); // Start with 0, fetch real
+  const [liveBalance, setLiveBalance] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { beneficiaries, loading, addBeneficiary } = useTransferSupabase();
 
-  // ✅ Sync Balance: No longer create wallet from frontend (Trigger handles it)
   useEffect(() => {
     let cancelled = false;
 
@@ -550,7 +549,6 @@ export default function TransferWizard() {
           .maybeSingle();
 
         if (!cancelled && result.data) {
-          // ✅ Strict Number parsing
           setLiveBalance(Number(result.data.balance));
         }
       } catch {
@@ -567,20 +565,19 @@ export default function TransferWizard() {
     setBeneficiary(null);
     setAmount('');
     setNote('');
-    // Balance will re-fetch in useEffect
   }, []);
 
-  // ✅ Confirm Transfer using Secure RPC (Day 13) & Safe Parsing (Day 15)
+  // ✅ Confirm Transfer using Secure RPC & Safe Parsing
   const handleConfirmTransfer = useCallback(async () => {
     if (!userId || !beneficiary) return;
 
     setIsProcessing(true);
     try {
-      // ✅ Safe amount parsing
+      // ✅ Day 15: Safe amount parsing
       const transferAmount = safeParseMoney(amount);
       const idempotencyKey = crypto.randomUUID();
 
-      // ✅ RPC Call (Replaces direct wallet update)
+      // ✅ RPC Call (Handles Limits & Balance securely)
       const { data, error: rpcError } = await supabase.rpc('execute_transfer', {
         p_amount: transferAmount,
         p_recipient_id: beneficiary.id,
@@ -591,15 +588,13 @@ export default function TransferWizard() {
 
       if (rpcError) throw new Error(rpcError.message);
 
-      // Update local balance from RPC response
       const rpcData = data as { success: boolean; new_balance: number };
       setLiveBalance(Number(rpcData.new_balance));
       
       setStep(3);
     } catch (err) {
       console.error("Transfer Error:", err);
-      // If error occurs, you might want to show a toast/alert here
-      // For now, we still go to receipt but could handle error state properly
+      // If a limit error occurs, you might want to show a toast here
       setStep(3); 
     } finally {
       setIsProcessing(false);
@@ -622,7 +617,6 @@ export default function TransferWizard() {
     setStep(2);
   };
 
-  // ✅ useMemo: Render step content
   const stepContent = useMemo(() => {
     switch (step) {
       case 0:
