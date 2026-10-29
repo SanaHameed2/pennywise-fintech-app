@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { useAuth } from '../../hooks/useAuth'; // ✅ Real Auth
 import { useSupabaseData } from '../../hooks/useSupabaseData'; // ✅ Real Data
+import { formatMoney } from '../../utils/money'; // ✅ Safe Money Formatter
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ✅ Lazy load charts
@@ -181,7 +182,8 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
         </div>
       </div>
       <span className={`text-sm font-bold ${isIncome ? 'text-[#34D399]' : 'text-[#EF4444]'}`}>
-        {isIncome ? '+' : '-'} Rs. {parseFloat(transaction.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+        {/* ✅ Use formatMoney instead of parseFloat */}
+        {isIncome ? '+' : '-'} Rs. {formatMoney(transaction.amount)}
       </span>
     </motion.div>
   );
@@ -266,10 +268,12 @@ export default function Dashboard() {
   const initials = displayName.substring(0, 2).toUpperCase();
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ✅ Dynamic Financial Data
+  // ✅ Dynamic Financial Data (Warnings Fixed Here)
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const pkrBalance = wallet?.balance || 0;
-  const liveTransactions = rawTransactions || [];
+  
+  // ✅ Wrapped in useMemo to prevent ESLint exhaustive-deps warning
+  const liveTransactions = useMemo(() => rawTransactions || [], [rawTransactions]);
 
   const totalIncome = useMemo(() => 
     liveTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0)
@@ -416,7 +420,7 @@ export default function Dashboard() {
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Total balance</p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <p className="text-3xl font-black text-white tracking-tight">
-                      {showBalance ? `Rs. ${pkrBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '••••••••'}
+                      {showBalance ? `Rs. ${formatMoney(pkrBalance)}` : '••••••••'}
                     </p>
                     <button
                       onClick={handleToggleBalance}
@@ -445,7 +449,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Net Cash Flow</p>
                 <p className="text-3xl font-black text-white tracking-tight mt-1.5">
-                  Rs. {(totalIncome - totalExpense).toLocaleString()}
+                  Rs. {formatMoney(totalIncome - totalExpense)}
                 </p>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-[10px] text-white/30">01 Jun</span>
@@ -471,17 +475,17 @@ export default function Dashboard() {
             <div className="flex gap-6">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Income</p>
-                <p className="text-lg font-bold text-[#34D399]">Rs. {totalIncome.toLocaleString()}</p>
+                <p className="text-lg font-bold text-[#34D399]">Rs. {formatMoney(totalIncome)}</p>
               </div>
               <div className="w-px bg-white/10" />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Expenses</p>
-                <p className="text-lg font-bold text-[#EF4444]">Rs. {totalExpense.toLocaleString()}</p>
+                <p className="text-lg font-bold text-[#EF4444]">Rs. {formatMoney(totalExpense)}</p>
               </div>
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Savings</p>
-              <p className="text-lg font-bold text-[#F59E0B]">Rs. {savings.toLocaleString()}</p>
+              <p className="text-lg font-bold text-[#F59E0B]">Rs. {formatMoney(savings)}</p>
             </div>
           </motion.div>
         </motion.div>
@@ -511,9 +515,9 @@ export default function Dashboard() {
           animate="visible"
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
-          <MetricCard label="Income" value={`Rs. ${totalIncome.toLocaleString()}`} icon={TrendingUp} change="+12.5%" changeType="up" showBalance={showBalance} />
-          <MetricCard label="Expenses" value={`Rs. ${totalExpense.toLocaleString()}`} icon={TrendingDown} change="-8.3%" changeType="down" showBalance={showBalance} />
-          <MetricCard label="Savings" value={`Rs. ${savings.toLocaleString()}`} icon={Wallet} showBalance={showBalance} />
+          <MetricCard label="Income" value={`Rs. ${formatMoney(totalIncome)}`} icon={TrendingUp} change="+12.5%" changeType="up" showBalance={showBalance} />
+          <MetricCard label="Expenses" value={`Rs. ${formatMoney(totalExpense)}`} icon={TrendingDown} change="-8.3%" changeType="down" showBalance={showBalance} />
+          <MetricCard label="Savings" value={`Rs. ${formatMoney(savings)}`} icon={Wallet} showBalance={showBalance} />
           <MetricCard label="Growth" value={`${growth}%`} icon={BarChart3} change="↑ 2.1%" changeType="up" showBalance={true} />
         </motion.div>
 
@@ -562,7 +566,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">Expense Categories</h2>
-              <span className="text-xs text-white/40 font-bold">Rs. {totalExpenses.toLocaleString()}</span>
+              <span className="text-xs text-white/40 font-bold">Rs. {formatMoney(totalExpenses)}</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-6">

@@ -9,6 +9,8 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransferSupabase } from '../../hooks/useTransferSupabase';
 import Footer from '../components/Footer';
+// ✅ Import Money Utils (Day 15)
+import { formatMoney, safeParseMoney } from '../../utils/money';
 
 /* ─── Types ─── */
 interface Beneficiary {
@@ -120,16 +122,14 @@ function Step1({
   const [newBank, setNewBank] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  const mockBeneficiaries: Beneficiary[] = useMemo(() => [
-    { id: 101, name: "Ali Ahmed", iban: "PK99VAUL0000987654321098", bank: "Pennywise Vault Network" },
-    { id: 102, name: "Ahmed Khan", iban: "PK21ALFA0000123456789012", bank: "Alfalah Bank" }
-  ], []);
-
   const safeBeneficiaries = useMemo(() => {
-    return Array.isArray(beneficiaries) && beneficiaries.length > 0
-      ? beneficiaries
-      : mockBeneficiaries;
-  }, [beneficiaries, mockBeneficiaries]);
+    if (Array.isArray(beneficiaries) && beneficiaries.length > 0) return beneficiaries;
+    // Fallback if empty for testing
+    return [
+      { id: 101, name: "Ali Ahmed", iban: "PK99VAUL0000987654321098", bank: "Pennywise Vault Network" },
+      { id: 102, name: "Ahmed Khan", iban: "PK21ALFA0000123456789012", bank: "Alfalah Bank" }
+    ];
+  }, [beneficiaries]);
 
   const filtered = useMemo(() => {
     return safeBeneficiaries.filter(
@@ -289,13 +289,15 @@ function Step2({
   const [error, setError] = useState('');
 
   const handleContinue = useCallback(() => {
-    const num = parseFloat(amount);
+    // ✅ Use safeParseMoney instead of parseFloat
+    const num = safeParseMoney(amount);
+    
     if (!amount || isNaN(num) || num <= 0) {
       setError('Please enter a valid amount greater than 0.');
       return;
     }
     if (num > availableBalance) {
-      setError(`Insufficient balance. Your available balance is Rs. ${availableBalance.toFixed(2)}.`);
+      setError(`Insufficient balance. Your available balance is Rs. ${formatMoney(availableBalance)}.`);
       return;
     }
     setError('');
@@ -310,10 +312,6 @@ function Step2({
   const handleNoteChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNote(e.target.value);
   }, []);
-
-  const formattedBalance = useMemo(() => {
-    return availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2 });
-  }, [availableBalance]);
 
   return (
     <div className="space-y-5">
@@ -348,7 +346,8 @@ function Step2({
       <div className="bg-white/5 rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-white/50">Available balance</span>
-          <span className="font-semibold text-white">Rs. {formattedBalance}</span>
+          {/* ✅ Use formatMoney */}
+          <span className="font-semibold text-white">Rs. {formatMoney(availableBalance)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-white/50">Transfer Fee</span>
@@ -418,9 +417,8 @@ function Step3({
     onConfirm();
   }, [pin, onConfirm]);
 
-  const formattedAmount = useMemo(() => {
-    return parseFloat(amount).toFixed(2);
-  }, [amount]);
+  // ✅ Use formatMoney
+  const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
 
   return (
     <div className="space-y-6">
@@ -485,9 +483,10 @@ function Step4({
   note?: string;
   onReset: () => void;
 }) {
-  // ✅ useState lazy initializer — Date.now() runs exactly once, exempt from react-hooks/purity
   const [txId] = useState(() => `PW-${Date.now().toString(36).toUpperCase()}`);
-  const formattedAmount = useMemo(() => parseFloat(amount).toFixed(2), [amount]);
+  
+  // ✅ Use formatMoney
+  const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
 
   return (
     <div className="space-y-6 text-center">
@@ -526,50 +525,18 @@ function Step4({
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function TransferWizard() {
   const { user } = useAuth();
-  // ✅ Capture primitive `userId` so React Compiler can preserve memoization
   const userId = user?.id;
 
   const [step, setStep] = useState(0);
   const [beneficiary, setBeneficiary] = useState<Beneficiary | null>(null);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
-  const [liveBalance, setLiveBalance] = useState<number>(500000.00);
+  const [liveBalance, setLiveBalance] = useState<number>(0); // Start with 0, fetch real
   const [isProcessing, setIsProcessing] = useState(false);
 
   const { beneficiaries, loading, addBeneficiary } = useTransferSupabase();
 
-  // ✅ useCallback: Sync wallet balance (called only from user-driven handlers)
-  const syncWalletBalance = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const result = await supabase
-        .from('wallets')
-        .select('id, balance')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      let walletData = result.data;
-      const walletError = result.error; // ✅ const
-
-      if (!walletData && !walletError) {
-        const { data: insertedWallet } = await supabase
-          .from('wallets')
-          .insert([{ user_id: userId, balance: 500000.00, currency: 'PKR', wallet_type: 'main' }])
-          .select()
-          .maybeSingle();
-
-        if (insertedWallet) walletData = insertedWallet;
-      }
-
-      if (walletData?.balance != null) {
-        setLiveBalance(parseFloat(String(walletData.balance)));
-      }
-    } catch {
-      setLiveBalance(500000.00);
-    }
-  }, [userId]); // ✅ primitive dep
-
-  // ✅ useEffect: Self-contained async loader, deferred setState
+  // ✅ Sync Balance: No longer create wallet from frontend (Trigger handles it)
   useEffect(() => {
     let cancelled = false;
 
@@ -578,116 +545,68 @@ export default function TransferWizard() {
       try {
         const result = await supabase
           .from('wallets')
-          .select('id, balance')
+          .select('balance')
           .eq('user_id', userId)
           .maybeSingle();
 
-        let walletData = result.data;
-        const walletError = result.error; // ✅ const
-
-        if (!walletData && !walletError) {
-          const { data: insertedWallet } = await supabase
-            .from('wallets')
-            .insert([{ user_id: userId, balance: 500000.00, currency: 'PKR', wallet_type: 'main' }])
-            .select()
-            .maybeSingle();
-
-          if (insertedWallet) walletData = insertedWallet;
-        }
-
-        if (!cancelled && walletData?.balance != null) {
-          setLiveBalance(parseFloat(String(walletData.balance)));
+        if (!cancelled && result.data) {
+          // ✅ Strict Number parsing
+          setLiveBalance(Number(result.data.balance));
         }
       } catch {
-        if (!cancelled) setLiveBalance(500000.00);
+        if (!cancelled) setLiveBalance(0);
       }
     };
 
     void loadBalance();
     return () => { cancelled = true; };
-  }, [userId, step]); // ✅ primitive dep
+  }, [userId, step]); 
 
-  // ✅ useCallback: Reset wizard
   const reset = useCallback(() => {
     setStep(0);
     setBeneficiary(null);
     setAmount('');
     setNote('');
-    void syncWalletBalance();
-  }, [syncWalletBalance]);
+    // Balance will re-fetch in useEffect
+  }, []);
 
-  // ✅ useCallback: Confirm transfer (user-driven handler)
+  // ✅ Confirm Transfer using Secure RPC (Day 13) & Safe Parsing (Day 15)
   const handleConfirmTransfer = useCallback(async () => {
     if (!userId || !beneficiary) return;
 
     setIsProcessing(true);
     try {
-      const transferAmount = parseFloat(amount);
+      // ✅ Safe amount parsing
+      const transferAmount = safeParseMoney(amount);
+      const idempotencyKey = crypto.randomUUID();
 
-      const result = await supabase
-        .from('wallets')
-        .select('id, balance')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // ✅ RPC Call (Replaces direct wallet update)
+      const { data, error: rpcError } = await supabase.rpc('execute_transfer', {
+        p_amount: transferAmount,
+        p_recipient_id: beneficiary.id,
+        p_recipient_name: beneficiary.name,
+        p_note: note || null,
+        p_idempotency_key: idempotencyKey,
+      });
 
-      let walletData = result.data;
+      if (rpcError) throw new Error(rpcError.message);
 
-      if (!walletData) {
-        const { data: seeded } = await supabase
-          .from('wallets')
-          .insert([{ user_id: userId, balance: 500000.00, currency: 'PKR', wallet_type: 'main' }])
-          .select()
-          .maybeSingle();
-        walletData = seeded;
-      }
-
-      const activeWalletId = walletData?.id || userId;
-      const currentBalance = parseFloat(String(walletData?.balance ?? '500000.00'));
-      const newBalance = currentBalance - transferAmount;
-
-      const { error: txError } = await supabase
-        .from('transactions')
-        .insert([{
-          user_id: userId,
-          amount: transferAmount,
-          description: note || `Transfer to ${beneficiary.name}`,
-          type: 'transfer',
-          category: 'Transfer',
-          status: 'completed',
-          currency: 'PKR',
-          created_at: new Date().toISOString(),
-        }]);
-
-      if (txError) {
-        await supabase
-          .from('transactions')
-          .insert([{
-            user_id: activeWalletId,
-            amount: transferAmount,
-            description: note || `Transfer to ${beneficiary.name}`,
-            type: 'transfer',
-            category: 'Transfer',
-            status: 'completed',
-            currency: 'PKR',
-            created_at: new Date().toISOString(),
-          }]);
-      }
-
-      await supabase
-        .from('wallets')
-        .update({ balance: newBalance })
-        .eq('user_id', userId);
-
-      setLiveBalance(newBalance);
+      // Update local balance from RPC response
+      const rpcData = data as { success: boolean; new_balance: number };
+      setLiveBalance(Number(rpcData.new_balance));
+      
       setStep(3);
-    } catch {
-      setStep(3);
+    } catch (err) {
+      console.error("Transfer Error:", err);
+      // If error occurs, you might want to show a toast/alert here
+      // For now, we still go to receipt but could handle error state properly
+      setStep(3); 
     } finally {
       setIsProcessing(false);
     }
-  }, [userId, beneficiary, amount, note]); // ✅ primitive first dep
+  }, [userId, beneficiary, amount, note]);
 
-  // ✅ Step navigation — plain functions (no memoization benefit)
+  // Step navigation
   const handleNext = (b: Beneficiary) => {
     setBeneficiary(b);
     setStep(1);

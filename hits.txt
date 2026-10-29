@@ -1,3 +1,0 @@
-  492 |       } (react-hooks/set-state-in-effect)
-  275 |   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ (react-hooks/set-state-in-effect)
-  203 |   // ✅ useCallback: Simulate biometric scan (react-hooks/set-state-in-effect)
