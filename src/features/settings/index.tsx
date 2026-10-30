@@ -1,20 +1,17 @@
 // src/features/settings/index.tsx
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
   User, Shield, Sliders, LogOut, 
-  ChevronRight, CreditCard, Camera,
-  CheckCircle2, BellRing
+  ChevronRight, CreditCard, BellRing
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { motion, AnimatePresence } from 'framer-motion';
 
 // ✅ IMPORT the Real SecurityTab
 import SecurityTab from './components/SecurityTab';
 
 type TabType = 'profile' | 'security' | 'preferences';
 
-// (TabButton, SettingsCard, ToggleSwitch, ProfileTab, PreferencesTab wahi rahenge)
 const TabButton = React.memo(({ tab, isActive, onSelect }: { tab: any; isActive: boolean; onSelect: (id: TabType) => void; }) => {
   const Icon = tab.icon;
   return (
