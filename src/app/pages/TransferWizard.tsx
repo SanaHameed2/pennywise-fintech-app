@@ -9,10 +9,8 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
 import { useTransferSupabase } from '../../hooks/useTransferSupabase';
 import Footer from '../components/Footer';
-// ✅ Import Money Utils (Day 15)
 import { formatMoney, safeParseMoney } from '../../utils/money';
 
-/* ─── Types ─── */
 interface Beneficiary {
   id: number;
   name: string;
@@ -21,12 +19,8 @@ interface Beneficiary {
   avatar?: string;
 }
 
-/* ─── Step progress indicator ─── */
 const STEPS = ['Beneficiary', 'Amount', 'Verify PIN', 'Receipt'];
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: StepBar
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const StepBar = React.memo(({ current }: { current: number }) => {
   return (
     <div className="w-full mb-8">
@@ -59,9 +53,6 @@ const StepBar = React.memo(({ current }: { current: number }) => {
 
 StepBar.displayName = 'StepBar';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: BeneficiaryCard
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const BeneficiaryCard = React.memo(({
   beneficiary,
   isSelected,
@@ -100,9 +91,6 @@ const BeneficiaryCard = React.memo(({
 
 BeneficiaryCard.displayName = 'BeneficiaryCard';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Step 1: Beneficiary Selection
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function Step1({
   onNext,
   beneficiaries = [],
@@ -160,7 +148,6 @@ function Step1({
       setNewBank('');
       setSelected(newBeneficiary);
     } catch (err: any) {
-      // ✅ Day 16: Show the specific IBAN validation error from the hook
       alert(err.message || 'Failed to add beneficiary');
     } finally {
       setIsAdding(false);
@@ -270,9 +257,6 @@ function Step1({
   );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Step 2: Amount Input
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function Step2({
   beneficiary,
   availableBalance,
@@ -289,7 +273,6 @@ function Step2({
   const [error, setError] = useState('');
 
   const handleContinue = useCallback(() => {
-    // ✅ Day 15: Use safeParseMoney instead of parseFloat
     const num = safeParseMoney(amount);
     
     if (!amount || isNaN(num) || num <= 0) {
@@ -346,7 +329,6 @@ function Step2({
       <div className="bg-white/5 rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-white/50">Available balance</span>
-          {/* ✅ Day 15: Use formatMoney */}
           <span className="font-semibold text-white">Rs. {formatMoney(availableBalance)}</span>
         </div>
         <div className="flex justify-between text-sm">
@@ -375,25 +357,29 @@ function Step2({
   );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Step 3: PIN Verification
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ✅ Day 18: Updated Step 3 for OTP
 function Step3({
   beneficiary,
   amount,
   onConfirm,
   onBack,
   isProcessing = false,
+  onRequestOtp,
 }: {
   beneficiary: Beneficiary;
   amount: string;
-  onConfirm: () => void;
+  onConfirm: (otp?: string) => void;
   onBack: () => void;
   isProcessing?: boolean;
+  onRequestOtp: () => Promise<void>;
 }) {
   const [pin, setPin] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState('');
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const isLargeTransfer = Number(amount) >= 10000;
 
   const handleDigit = useCallback((val: string, idx: number) => {
     if (!/^\d?$/.test(val)) return;
@@ -411,26 +397,45 @@ function Step3({
   }, [pin]);
 
   const handleConfirm = useCallback(() => {
-    const full = pin.join('');
-    if (full.length < 6) { setError('Please enter all 6 digits.'); return; }
-    if (full !== '123456') { setError('Incorrect PIN.'); return; }
-    onConfirm();
-  }, [pin, onConfirm]);
+    if (isLargeTransfer) {
+      if (!otp || otp.length < 6) { setError('Enter 6-digit OTP.'); return; }
+      onConfirm(otp);
+    } else {
+      const full = pin.join('');
+      if (full.length < 6) { setError('Please enter all 6 digits.'); return; }
+      if (full !== '123456') { setError('Incorrect PIN.'); return; }
+      onConfirm();
+    }
+  }, [pin, otp, isLargeTransfer, onConfirm]);
 
-  // ✅ Day 15: Use formatMoney
+  const handleRequestOtp = async () => {
+    try {
+      setError('');
+      await onRequestOtp();
+      setOtpSent(true);
+    } catch (err: any) {
+      setError(err.message || 'Failed to send OTP');
+    }
+  };
+
   const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-white">Secure PIN Verification</h2>
-        <p className="text-sm text-white/50 mt-0.5">Authorise this transfer with your 6-digit cryptographic PIN</p>
+        <h2 className="text-xl font-semibold text-white">
+          {isLargeTransfer ? 'Step-up OTP Verification' : 'Secure PIN Verification'}
+        </h2>
+        <p className="text-sm text-white/50 mt-0.5">
+          {isLargeTransfer 
+            ? 'Large transfer detected. Please verify with OTP.' 
+            : 'Authorise this transfer with your 6-digit cryptographic PIN'}
+        </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
         {[
           ['To', beneficiary.name],
-          ['Bank', beneficiary.bank],
           ['Amount', `Rs. ${formattedAmount}`],
         ].map(([k, v]) => (
           <div key={k} className="flex justify-between text-sm">
@@ -440,28 +445,46 @@ function Step3({
         ))}
       </div>
 
-      <div className="flex justify-center gap-3">
-        {pin.map((digit, i) => (
-          <input
-            key={i}
-            ref={(el) => { refs.current[i] = el; }}
-            type="password"
-            maxLength={1}
-            value={digit}
-            onChange={(e) => handleDigit(e.target.value, i)}
-            onKeyDown={(e) => handleKeyDown(e, i)}
-            className="w-11 h-14 text-center text-xl font-bold rounded-xl border-2 bg-white/5 border-white/20 text-white focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/30 focus:outline-none"
-          />
-        ))}
-      </div>
+      {isLargeTransfer ? (
+        <div className="space-y-4">
+          {!otpSent ? (
+             <button onClick={handleRequestOtp} className="w-full bg-[#FF7F50] text-black py-3 rounded-xl font-semibold hover:bg-[#ff8f66]">
+               Send OTP (Simulated)
+             </button>
+          ) : (
+            <input
+              type="text"
+              placeholder="Enter 6-digit OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              className="w-full text-center text-xl tracking-widest py-3 rounded-xl border-2 bg-white/5 border-white/20 text-white focus:border-[#FF7F50] focus:outline-none"
+            />
+          )}
+        </div>
+      ) : (
+        <div className="flex justify-center gap-3">
+          {pin.map((digit, i) => (
+            <input
+              key={i}
+              ref={(el) => { refs.current[i] = el; }}
+              type="password"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleDigit(e.target.value, i)}
+              onKeyDown={(e) => handleKeyDown(e, i)}
+              className="w-11 h-14 text-center text-xl font-bold rounded-xl border-2 bg-white/5 border-white/20 text-white focus:border-[#FF7F50] focus:outline-none"
+            />
+          ))}
+        </div>
+      )}
 
       {error && <p className="text-center text-sm text-red-400">{error}</p>}
 
       <div className="flex gap-3">
-        <button onClick={onBack} disabled={isProcessing} className="flex items-center gap-1 px-5 py-3 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5 transition-colors">
+        <button onClick={onBack} disabled={isProcessing} className="flex items-center gap-1 px-5 py-3 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5">
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
-        <button onClick={handleConfirm} disabled={isProcessing} className="flex-1 flex items-center justify-center gap-2 bg-[#FF7F50] hover:bg-[#ff8f66] text-black py-3 rounded-xl font-semibold text-sm transition-all">
+        <button onClick={handleConfirm} disabled={isProcessing} className="flex-1 bg-[#FF7F50] text-black py-3 rounded-xl font-semibold text-sm hover:bg-[#ff8f66]">
           {isProcessing ? 'Processing…' : 'Confirm Transfer'}
         </button>
       </div>
@@ -469,9 +492,6 @@ function Step3({
   );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Step 4: Digital Receipt
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function Step4({
   beneficiary,
   amount,
@@ -484,8 +504,6 @@ function Step4({
   onReset: () => void;
 }) {
   const [txId] = useState(() => `PW-${Date.now().toString(36).toUpperCase()}`);
-  
-  // ✅ Day 15: Use formatMoney
   const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
 
   return (
@@ -520,9 +538,6 @@ function Step4({
   );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Main Wizard
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function TransferWizard() {
   const { user } = useAuth();
   const userId = user?.id;
@@ -534,7 +549,8 @@ export default function TransferWizard() {
   const [liveBalance, setLiveBalance] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { beneficiaries, loading, addBeneficiary } = useTransferSupabase();
+  // ✅ Destructure requestOtp
+  const { beneficiaries, loading, addBeneficiary, requestOtp } = useTransferSupabase();
 
   useEffect(() => {
     let cancelled = false;
@@ -567,23 +583,22 @@ export default function TransferWizard() {
     setNote('');
   }, []);
 
-  // ✅ Confirm Transfer using Secure RPC & Safe Parsing
-  const handleConfirmTransfer = useCallback(async () => {
+  // ✅ Day 18: Accept OTP
+  const handleConfirmTransfer = useCallback(async (otp?: string) => {
     if (!userId || !beneficiary) return;
 
     setIsProcessing(true);
     try {
-      // ✅ Day 15: Safe amount parsing
       const transferAmount = safeParseMoney(amount);
       const idempotencyKey = crypto.randomUUID();
 
-      // ✅ RPC Call (Handles Limits & Balance securely)
       const { data, error: rpcError } = await supabase.rpc('execute_transfer', {
         p_amount: transferAmount,
         p_recipient_id: beneficiary.id,
         p_recipient_name: beneficiary.name,
         p_note: note || null,
         p_idempotency_key: idempotencyKey,
+        p_otp: otp || null, // ✅ Pass OTP
       });
 
       if (rpcError) throw new Error(rpcError.message);
@@ -594,14 +609,12 @@ export default function TransferWizard() {
       setStep(3);
     } catch (err) {
       console.error("Transfer Error:", err);
-      // If a limit error occurs, you might want to show a toast here
       setStep(3); 
     } finally {
       setIsProcessing(false);
     }
   }, [userId, beneficiary, amount, note]);
 
-  // Step navigation
   const handleNext = (b: Beneficiary) => {
     setBeneficiary(b);
     setStep(1);
@@ -645,6 +658,7 @@ export default function TransferWizard() {
             onConfirm={handleConfirmTransfer}
             onBack={handleBack}
             isProcessing={isProcessing}
+            onRequestOtp={requestOtp} // ✅ Pass it
           />
         ) : null;
       case 3:
@@ -660,7 +674,7 @@ export default function TransferWizard() {
         return null;
     }
   }, [step, beneficiary, amount, note, liveBalance, loading, beneficiaries,
-      addBeneficiary, isProcessing, handleConfirmTransfer, reset]);
+      addBeneficiary, isProcessing, handleConfirmTransfer, reset, requestOtp]);
 
   return (
     <div className="min-h-screen bg-[#050507] text-white overflow-x-hidden relative selection:bg-[#FF7F50]/20 antialiased font-sans">

@@ -67,8 +67,6 @@ export function useTransferSupabase() {
     if (isAdding) throw new Error('Already adding beneficiary');
     if (!name.trim() || !iban.trim() || !bank.trim()) throw new Error('All fields are required');
 
-    // ✅ Day 16: Strict Pakistani IBAN Format Validation (24 chars)
-    // Format: PK + 2 digits + 4 uppercase letters (Bank) + 16 digits
     const ibanRegex = /^PK\d{2}[A-Z]{4}\d{16}$/;
     const formattedIban = iban.trim().toUpperCase();
 
@@ -87,7 +85,7 @@ export function useTransferSupabase() {
         .insert([{
           user_id: user.id,
           name: name.trim(),
-          iban: formattedIban, // ✅ Save the uppercase formatted IBAN
+          iban: formattedIban,
           bank: bank.trim(),
           avatar: avatar || '??',
         }])
@@ -119,7 +117,28 @@ export function useTransferSupabase() {
     }
   }, [user, isAdding]);
 
-  const executeTransfer = useCallback(async (amount: number, recipientId: number, note: string) => {
+  // ✅ Day 18: Request OTP for Large Transfers
+  const requestOtp = useCallback(async () => {
+    if (!user) throw new Error('Not authenticated');
+    
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60000).toISOString(); // 5 mins validity
+
+    const { error } = await supabase.from('transfer_otps').insert({
+      user_id: user.id,
+      otp_code: otp,
+      expires_at: expiresAt
+    });
+
+    if (error) throw error;
+
+    // Simulate SMS/Email sending
+    console.log(`🔐 [STEP-UP OTP]: ${otp}`);
+    alert(`Simulated SMS: Aapka Pennywise OTP hai ${otp}`);
+  }, [user]);
+
+  // ✅ Day 18: Updated executeTransfer with OTP
+  const executeTransfer = useCallback(async (amount: number, recipientId: number, note: string, otp?: string) => {
     if (!user) throw new Error('User not authenticated');
     if (isExecuting) throw new Error('Transfer already in progress');
     if (amount <= 0) throw new Error('Amount must be greater than 0');
@@ -131,24 +150,21 @@ export function useTransferSupabase() {
     setError(null);
 
     try {
-      // ✅ Generate a unique idempotency key for this specific request
       const idempotencyKey = crypto.randomUUID();
 
-      // ✅ SECURE RPC CALL with Idempotency Key (Limits are handled inside DB)
       const { data, error: rpcError } = await supabase.rpc('execute_transfer', {
         p_amount: amount,
         p_recipient_id: recipientId,
         p_recipient_name: recipient.name,
         p_note: note || null,
         p_idempotency_key: idempotencyKey,
+        p_otp: otp || null, // ✅ Pass OTP
       });
 
       if (rpcError) {
-        // This will catch the Daily Limit or Per-Transaction Limit errors from DB
         throw new Error(rpcError.message);
       }
 
-      // Data comes back from RPC as a JSON object
       const rpcData = data as { success: boolean; new_balance: number };
 
       return {
@@ -178,5 +194,6 @@ export function useTransferSupabase() {
     isExecuting,
     addBeneficiary,
     executeTransfer,
+    requestOtp, // ✅ Export it
   };
 }

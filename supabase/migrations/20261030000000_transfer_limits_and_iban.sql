@@ -1,3 +1,8 @@
+-- 🛠️ PEHLE: Purane ghalat data ko clean karein taake naya constraint fail na ho
+UPDATE public.beneficiaries 
+SET iban = 'PK00TEST0000000000000000' 
+WHERE iban !~ '^PK\d{2}[A-Z]{4}\d{16}$';
+
 -- 1. Strict Pakistani IBAN format par database CHECK constraint lagayein
 -- Format: PK + 2 digits + 4 letters (Bank Code) + 16 digits (Account Number) = 24 chars
 ALTER TABLE public.beneficiaries
@@ -10,7 +15,8 @@ CREATE OR REPLACE FUNCTION execute_transfer(
   p_recipient_id BIGINT,
   p_recipient_name TEXT,
   p_note TEXT DEFAULT NULL,
-  p_idempotency_key TEXT DEFAULT NULL
+  p_idempotency_key TEXT DEFAULT NULL,
+  p_otp TEXT DEFAULT NULL -- ✅ Added for Day 18
 ) RETURNS JSON AS $$
 DECLARE
   v_user_id UUID;
@@ -19,10 +25,28 @@ DECLARE
   v_daily_transfer_total NUMERIC;
   v_daily_limit NUMERIC := 100000.00; -- 1 Lakh Daily Limit
   v_per_tx_limit NUMERIC := 50000.00; -- 50k Per Transaction Limit
+  v_otp_threshold NUMERIC := 10000.00; -- 10k Threshold for OTP
+  v_valid_otp UUID;
 BEGIN
   v_user_id := auth.uid();
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  -- ✅ OTP Step-up Check (Day 18)
+  IF p_amount >= v_otp_threshold THEN
+    IF p_otp IS NULL THEN 
+      RAISE EXCEPTION 'OTP required for transfers above Rs. %', v_otp_threshold; 
+    END IF;
+
+    SELECT id INTO v_valid_otp FROM public.transfer_otps 
+    WHERE user_id = v_user_id AND otp_code = p_otp AND expires_at > NOW() LIMIT 1;
+    
+    IF v_valid_otp IS NULL THEN 
+      RAISE EXCEPTION 'Invalid or expired OTP.'; 
+    END IF;
+    
+    DELETE FROM public.transfer_otps WHERE id = v_valid_otp; -- Consume OTP
   END IF;
 
   -- Per transaction limit check
