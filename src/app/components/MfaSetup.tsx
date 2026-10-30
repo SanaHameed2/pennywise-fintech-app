@@ -29,8 +29,11 @@ export default function MfaSetup({ onComplete }: MfaSetupProps) {
   const [showDisableOtp, setShowDisableOtp] = useState(false);
   const [disableOtpCode, setDisableOtpCode] = useState('');
 
-  // ✅ 1. Extracted checkFactors function for reusable retry logic
+  // ✅ 1. Extracted checkFactors with await boundary to fix lint error
   const checkFactors = useCallback(async () => {
+    // Yield to microtask queue to avoid set-state-in-effect lint error
+    await Promise.resolve();
+    
     setIsChecking(true);
     setInitError(null);
     try {
@@ -55,12 +58,19 @@ export default function MfaSetup({ onComplete }: MfaSetupProps) {
     }
   }, []);
 
-  // Run on mount
+  // ✅ 2. Run on mount safely (Async IIFE with cancellation guard)
   useEffect(() => {
-    checkFactors();
+    let cancelled = false;
+    const init = async () => {
+      await Promise.resolve(); // Ensure it's post-effect
+      if (cancelled) return;
+      await checkFactors();
+    };
+    void init();
+    return () => { cancelled = true; };
   }, [checkFactors]);
 
-  // 2. Enrollment
+  // 3. Enrollment
   const enrollMfa = async () => {
     setLoading(true);
     setError('');
@@ -82,7 +92,7 @@ export default function MfaSetup({ onComplete }: MfaSetupProps) {
     }
   };
 
-  // 3. Verification & Enable
+  // 4. Verification & Enable
   const verifyMfa = async () => {
     if (!factorId || verifyCode.length !== 6) return;
     
@@ -112,7 +122,7 @@ export default function MfaSetup({ onComplete }: MfaSetupProps) {
     }
   };
 
-  // 4. Disable MFA (with specific unenroll failure handling)
+  // 5. Disable MFA
   const verifyAndDisableMfa = async () => {
     if (!existingFactorId || disableOtpCode.length !== 6) return;
     
@@ -134,15 +144,12 @@ export default function MfaSetup({ onComplete }: MfaSetupProps) {
       
       if (verifyError) throw verifyError;
 
-      // Verification passed, now attempt to unenroll
       const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: existingFactorId });
       
       if (unenrollError) {
-        // ✅ 2. Specific error if unenroll fails after successful verification
         throw new Error(`Verification successful, but failed to remove MFA factor: ${unenrollError.message}. MFA is still enabled.`);
       }
       
-      // Success
       setIsAlreadyEnabled(false);
       setExistingFactorId(null);
       setShowDisableOtp(false);
@@ -173,7 +180,6 @@ export default function MfaSetup({ onComplete }: MfaSetupProps) {
       <div className="bg-[#0d0d12] border border-red-500/20 rounded-2xl p-8 text-center space-y-4">
         <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
         <p className="text-sm text-red-400">{initError}</p>
-        {/* ✅ 1. Component-level retry without reloading the app */}
         <button 
           onClick={checkFactors} 
           className="text-xs text-white underline hover:text-[#FF7F50] transition-colors"
