@@ -1,8 +1,8 @@
 // src/features/settings/components/SecurityTab.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { useAuth } from '../../../hooks/useAuth';
-import { Lock, Key, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, Key, Shield, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import MfaSetup from '../../../app/components/MfaSetup';
 
 export default function SecurityTab() {
@@ -13,7 +13,26 @@ export default function SecurityTab() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
+  // ✅ MFA Modal & Status State
   const [showMfaModal, setShowMfaModal] = useState(false);
+  const [isMfaEnabled, setIsMfaEnabled] = useState(false);
+  const [checkingMfa, setCheckingMfa] = useState(true);
+
+  // ✅ Check MFA Status on Load
+  useEffect(() => {
+    const checkMfaStatus = async () => {
+      try {
+        const { data } = await supabase.auth.mfa.listFactors();
+        const hasVerified = data?.all?.some(f => f.status === 'verified' && f.factor_type === 'totp');
+        setIsMfaEnabled(!!hasVerified);
+      } catch (err) {
+        console.error("Error checking MFA:", err);
+      } finally {
+        setCheckingMfa(false);
+      }
+    };
+    checkMfaStatus();
+  }, []);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,18 +93,20 @@ export default function SecurityTab() {
 
       {message && (
         <div className={`p-3 rounded-xl text-sm flex items-center gap-2 ${
-          message.type === 'success' ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-brand-destructive/10 border border-brand-destructive/20 text-brand-destructive'
+          message.type === 'success'
+            ? 'bg-green-500/10 border border-green-500/20 text-green-400'
+            : 'bg-brand-destructive/10 border border-brand-destructive/20 text-brand-destructive'
         }`}>
           {message.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           {message.text}
         </div>
       )}
 
+      {/* Password Update */}
       <form onSubmit={handlePasswordUpdate} className="space-y-4 border border-border rounded-xl p-6 bg-card/50">
         <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
           <Key className="w-5 h-5 text-brand-primary" /> Change Password
         </h3>
-
         <div>
           <label className="block text-sm font-medium text-foreground/60 mb-1.5">Current Password</label>
           <div className="relative">
@@ -93,7 +114,6 @@ export default function SecurityTab() {
             <input type="password" value={oldPassword} onChange={(e) => setOldPassword(e.target.value)} className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-brand-primary" placeholder="Enter current password" required />
           </div>
         </div>
-
         <div>
           <label className="block text-sm font-medium text-foreground/60 mb-1.5">New Password</label>
           <div className="relative">
@@ -101,7 +121,6 @@ export default function SecurityTab() {
             <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-brand-primary" placeholder="Enter new password" required minLength={6} />
           </div>
         </div>
-
         <div>
           <label className="block text-sm font-medium text-foreground/60 mb-1.5">Confirm New Password</label>
           <div className="relative">
@@ -109,27 +128,43 @@ export default function SecurityTab() {
             <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-border bg-card text-foreground focus:outline-none focus:border-brand-primary" placeholder="Confirm new password" required />
           </div>
         </div>
-
         <button type="submit" disabled={loading} className="w-full bg-brand-primary text-background py-2.5 rounded-xl font-semibold hover:opacity-90 disabled:opacity-50">
           {loading ? 'Updating...' : 'Update Password'}
         </button>
       </form>
 
+      {/* ✅ Dynamic MFA Section */}
       <div className="border border-border rounded-xl p-6 bg-card/50">
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-3">
             <Shield className="w-5 h-5 text-brand-primary mt-0.5" />
             <div>
-              <h3 className="text-lg font-medium text-foreground">Two-Factor Authentication</h3>
-              <p className="text-sm text-muted-foreground">Use an Authenticator app (Google/Authy)</p>
+              <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+                Two-Factor Authentication
+                {isMfaEnabled && <ShieldCheck className="w-4 h-4 text-emerald-500" />}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {isMfaEnabled 
+                  ? 'Your account is protected by an Authenticator app.' 
+                  : 'Use an Authenticator app (Google/Authy) for extra security.'}
+              </p>
             </div>
           </div>
-          <button type="button" onClick={() => setShowMfaModal(true)} className="px-5 py-2.5 rounded-xl bg-brand-primary text-background font-semibold hover:opacity-90 text-sm">
-            Enable
+          <button
+            type="button"
+            onClick={() => setShowMfaModal(true)}
+            className={`px-5 py-2.5 rounded-xl font-semibold transition-opacity text-sm ${
+              isMfaEnabled 
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20' 
+                : 'bg-brand-primary text-background hover:opacity-90'
+            }`}
+          >
+            {checkingMfa ? 'Checking...' : isMfaEnabled ? 'Manage MFA' : 'Enable'}
           </button>
         </div>
       </div>
 
+      {/* MFA Modal */}
       {showMfaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm relative">
@@ -137,9 +172,13 @@ export default function SecurityTab() {
               Close
             </button>
             <MfaSetup
-              onComplete={() => {
+              onComplete={(action) => {
                 setShowMfaModal(false);
-                setMessage({ type: 'success', text: 'MFA Successfully Enabled!' });
+                setIsMfaEnabled(action === 'enabled'); // ✅ Update UI state dynamically
+                setMessage({ 
+                  type: 'success', 
+                  text: action === 'enabled' ? 'MFA Successfully Enabled!' : 'MFA Successfully Disabled!' 
+                });
               }}
             />
           </div>
