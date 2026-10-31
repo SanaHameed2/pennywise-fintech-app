@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react';
 
 export function useIdleTimer(timeoutMs: number, onTimeout: () => void, isEnabled: boolean = true) {
   const timeoutRef = useRef(onTimeout);
-  const lastActivityRef = useRef<number>(Date.now());
+  // ✅ Fixed: Initialize with 0 instead of Date.now() to satisfy react-hooks/purity
+  const lastActivityRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isTimedOutRef = useRef<boolean>(false);
 
@@ -12,9 +13,8 @@ export function useIdleTimer(timeoutMs: number, onTimeout: () => void, isEnabled
   }, [onTimeout]);
 
   useEffect(() => {
-    // ✅ Fix 2: Do not run timer if not enabled (user not logged in)
     if (!isEnabled) {
-      isTimedOutRef.current = false; // Reset state when disabled
+      isTimedOutRef.current = false;
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
@@ -27,7 +27,8 @@ export function useIdleTimer(timeoutMs: number, onTimeout: () => void, isEnabled
       return;
     }
 
-    isTimedOutRef.current = false; // Reset on enable
+    isTimedOutRef.current = false;
+    // ✅ Set initial timestamp inside effect (runs after render, pure-safe)
     lastActivityRef.current = Date.now();
 
     const handleTimeout = () => {
