@@ -2,6 +2,7 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { User } from '@supabase/supabase-js';
+import { useIdleTimer } from '../hooks/useIdleTimer';
 
 interface AuthContextType {
   user: User | null;
@@ -27,12 +28,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
-        } else {
-          const storedUser = localStorage.getItem('user');
-          if (storedUser) {
-            setUser(JSON.parse(storedUser));
-            setIsAuthenticated(true);
-          }
         }
       } catch (error) {
         console.error('Session check error:', error);
@@ -48,12 +43,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           setUser(session.user);
           setIsAuthenticated(true);
-          localStorage.setItem('user', JSON.stringify(session.user));
         } else {
           setUser(null);
           setIsAuthenticated(false);
-          localStorage.removeItem('user');
-          localStorage.removeItem('token');
         }
         setLoading(false);
       }
@@ -66,15 +58,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { success: false, error: error.message };
       return { success: true, user: data.user };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Login failed' };
@@ -86,18 +71,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            full_name: name,
-          },
-        },
+        options: { data: { full_name: name } },
       });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      // ✅ Fixed: using undefined instead of null
+      if (error) return { success: false, error: error.message };
       return { success: true, user: data.user || undefined };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Signup failed' };
@@ -107,12 +83,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        return { success: false, error: error.message };
-      }
+      if (error) return { success: false, error: error.message };
       
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
       setUser(null);
       setIsAuthenticated(false);
       return { success: true };
@@ -121,15 +93,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // ✅ Idle Timeout with Session Validity Check
+  useIdleTimer(15 * 60 * 1000, async () => {
+    // Reviewer's limitation addressed: Check actual session before acting
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session || user) {
+      try {
+        if (session) {
+          // Only call signOut if there's actually an active session
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.error('Idle logout signOut failed:', error.message);
+          }
+        }
+
+        // Clear local state regardless
+        setUser(null);
+        setIsAuthenticated(false);
+        
+        alert('Your session has expired due to 15 minutes of inactivity. Please log in again.');
+        window.location.href = '/login'; 
+      } catch (err) {
+        console.error('Error during idle logout:', err);
+      }
+    }
+  }, !!user);
+
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated,
-      loading,
-      login,
-      signup,
-      logout
-    }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -137,8 +129,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

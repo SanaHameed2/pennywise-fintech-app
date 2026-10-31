@@ -110,12 +110,9 @@ function Step1({
   const [newBank, setNewBank] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
+  // ✅ Fix: Sirf asli database wale beneficiaries return karein
   const safeBeneficiaries = useMemo(() => {
-    if (Array.isArray(beneficiaries) && beneficiaries.length > 0) return beneficiaries;
-    return [
-      { id: 101, name: "Ali Ahmed", iban: "PK99VAUL0000987654321098", bank: "Pennywise Vault Network" },
-      { id: 102, name: "Ahmed Khan", iban: "PK21ALFA0000123456789012", bank: "Alfalah Bank" }
-    ];
+    return beneficiaries || [];
   }, [beneficiaries]);
 
   const filtered = useMemo(() => {
@@ -236,14 +233,21 @@ function Step1({
       </div>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-        {filtered.map((b) => (
-          <BeneficiaryCard
-            key={b.id}
-            beneficiary={b}
-            isSelected={selected?.id === b.id}
-            onSelect={handleSelect}
-          />
-        ))}
+        {/* ✅ Fix: Agar list khali ho toh message show karein */}
+        {filtered.length === 0 ? (
+          <p className="text-center text-sm text-white/40 py-4">
+            No beneficiaries found. Click "Add New" to create one.
+          </p>
+        ) : (
+          filtered.map((b) => (
+            <BeneficiaryCard
+              key={b.id}
+              beneficiary={b}
+              isSelected={selected?.id === b.id}
+              onSelect={handleSelect}
+            />
+          ))
+        )}
       </div>
 
       <button
@@ -357,7 +361,6 @@ function Step2({
   );
 }
 
-// ✅ Day 18: Updated Step 3 for OTP
 function Step3({
   beneficiary,
   amount,
@@ -549,7 +552,6 @@ export default function TransferWizard() {
   const [liveBalance, setLiveBalance] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // ✅ Destructure requestOtp
   const { beneficiaries, loading, addBeneficiary, requestOtp } = useTransferSupabase();
 
   useEffect(() => {
@@ -583,7 +585,6 @@ export default function TransferWizard() {
     setNote('');
   }, []);
 
-  // ✅ Day 18: Accept OTP
   const handleConfirmTransfer = useCallback(async (otp?: string) => {
     if (!userId || !beneficiary) return;
 
@@ -598,7 +599,7 @@ export default function TransferWizard() {
         p_recipient_name: beneficiary.name,
         p_note: note || null,
         p_idempotency_key: idempotencyKey,
-        p_otp: otp || null, // ✅ Pass OTP
+        p_otp: otp || null,
       });
 
       if (rpcError) throw new Error(rpcError.message);
@@ -658,7 +659,7 @@ export default function TransferWizard() {
             onConfirm={handleConfirmTransfer}
             onBack={handleBack}
             isProcessing={isProcessing}
-            onRequestOtp={requestOtp} // ✅ Pass it
+            onRequestOtp={requestOtp}
           />
         ) : null;
       case 3:
