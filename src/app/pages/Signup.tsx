@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Shield, Smartphone, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // ✅ Removed useNavigate
 import { useAuth, validateEmail, validateName, sanitizeInput } from '../../hooks/useAuth';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -23,7 +23,7 @@ TrustBadge.displayName = 'TrustBadge';
 // ✅ Main Signup Component
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function Signup() {
-  const navigate = useNavigate();
+  // ✅ Removed unused navigate variable
   const { signup } = useAuth();
   
   const [name, setName] = useState('');
