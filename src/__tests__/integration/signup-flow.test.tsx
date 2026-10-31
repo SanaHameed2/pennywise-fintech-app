@@ -86,14 +86,15 @@ describe('Signup Flow - Integration', () => {
     fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
       target: { value: 'test@email.com' },
     });
+    // ✅ Fixed: Removed extra '!'
     fireEvent.change(screen.getByPlaceholderText('Create a strong password'), {
-      target: { value: 'password123' },
+      target: { value: 'Password123!' },
     });
 
     fireEvent.click(screen.getByText('Create Account'));
 
     await waitFor(() => {
-      expect(mockSignup).toHaveBeenCalledWith('Test User', 'test@email.com', 'password123');
+      expect(mockSignup).toHaveBeenCalledWith('Test User', 'test@email.com', 'Password123!');
     });
   });
 });

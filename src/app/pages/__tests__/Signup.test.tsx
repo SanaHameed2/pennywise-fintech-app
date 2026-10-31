@@ -73,8 +73,9 @@ describe('Signup', () => {
     fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
       target: { value: 'existing@email.com' },
     });
+    // ✅ Fixed: Removed extra '!'
     fireEvent.change(screen.getByPlaceholderText('Create a strong password'), {
-      target: { value: 'password123' },
+      target: { value: 'Password123!' },
     });
 
     fireEvent.click(screen.getByText('Create Account'));
@@ -106,7 +107,7 @@ describe('Signup', () => {
       target: { value: 'test@email.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('Create a strong password'), {
-      target: { value: 'password123' },
+      target: { value: 'Password123!' },
     });
 
     fireEvent.click(screen.getByText('Create Account'));
