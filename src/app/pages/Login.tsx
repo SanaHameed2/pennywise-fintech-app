@@ -1,7 +1,7 @@
 // src/app/pages/Login.tsx
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield, Smartphone, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield, Smartphone, CheckCircle2, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, validateEmail, validatePassword } from '../../hooks/useAuth';
 
@@ -30,6 +30,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false); // ✅ New state for demo button
 
   // ✅ useCallback: Handle form submission with validation
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -55,15 +56,38 @@ export default function Login() {
       if (result.success) {
         navigate('/dashboard');
       } else {
-        setError(result?.error || 'Invalid email or password. Please try again.');
+        // ✅ Handle email not confirmed error
+        if (result.error?.includes('Email not confirmed') || result.error?.includes('email_not_confirmed')) {
+          setError('Please verify your email address before logging in.');
+        } else {
+          setError(result?.error || 'Invalid email or password. Please try again.');
+        }
       }
     } catch {
-      // ✅ no binding — err was unused
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   }, [email, password, login, navigate]);
+
+  // ✅ Handle Demo Login (1-Click)
+  const handleDemoLogin = useCallback(async () => {
+    setError('');
+    setDemoLoading(true);
+
+    try {
+      const result = await login('demo@pennywise.com', 'DemoUser123!');
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result?.error || 'Failed to login to demo account. Please try again.');
+      }
+    } catch {
+      setError('Something went wrong while connecting to demo account.');
+    } finally {
+      setDemoLoading(false);
+    }
+  }, [login, navigate]);
 
   // ✅ useCallback: Toggle password visibility
   const togglePasswordVisibility = useCallback(() => {
@@ -137,6 +161,32 @@ export default function Login() {
             </motion.div>
           )}
 
+          {/* ✅ Try Demo Account Button (1-Click) */}
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading || loading}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 text-emerald-400 font-semibold py-3 rounded-xl hover:bg-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {demoLoading ? (
+              <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" /> Try Demo Account (1-Click)
+              </>
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-[#0d0d12] px-3 text-gray-500">or sign in manually</span>
+            </div>
+          </div>
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Input */}
@@ -201,7 +251,7 @@ export default function Login() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || demoLoading}
               className="w-full bg-[#FF7F50] hover:bg-[#ff8f66] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_rgba(255,127,80,0.2)] flex items-center justify-center gap-2"
             >
               {loading ? (
@@ -213,16 +263,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-[#0d0d12] px-3 text-gray-500">or</span>
-            </div>
-          </div>
 
           {/* Sign Up Link */}
           <div className="text-center">
