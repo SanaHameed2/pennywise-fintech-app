@@ -3,6 +3,7 @@ import { createContext, useState, useContext, useEffect, ReactNode } from 'react
 import { supabase } from '../lib/supabaseClient';
 import { User } from '@supabase/supabase-js';
 import { useIdleTimer } from '../hooks/useIdleTimer';
+import { toast } from 'sonner'; // ✅ Import Toast
 
 interface AuthContextType {
   user: User | null;
@@ -95,24 +96,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // ✅ Idle Timeout with Session Validity Check
   useIdleTimer(15 * 60 * 1000, async () => {
-    // Reviewer's limitation addressed: Check actual session before acting
     const { data: { session } } = await supabase.auth.getSession();
 
     if (session || user) {
       try {
         if (session) {
-          // Only call signOut if there's actually an active session
           const { error } = await supabase.auth.signOut();
           if (error) {
             console.error('Idle logout signOut failed:', error.message);
           }
         }
 
-        // Clear local state regardless
         setUser(null);
         setIsAuthenticated(false);
         
-        alert('Your session has expired due to 15 minutes of inactivity. Please log in again.');
+        // ✅ Replaced alert with toast
+        toast.error('Session expired due to 15 minutes of inactivity.');
         window.location.href = '/login'; 
       } catch (err) {
         console.error('Error during idle logout:', err);

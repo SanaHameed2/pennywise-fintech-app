@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from './useAuth';
+import { toast } from 'sonner'; // ✅ Import Toast
 
 interface Beneficiary {
   id: number;
@@ -132,9 +133,11 @@ export function useTransferSupabase() {
 
     if (error) throw error;
 
-    // Simulate SMS/Email sending
+    // Simulate SMS/Email sending via Toast
     console.log(`🔐 [STEP-UP OTP]: ${otp}`);
-    alert(`Simulated SMS: Aapka Pennywise OTP hai ${otp}`);
+    toast.success(`Simulated SMS: Aapka Pennywise OTP hai ${otp}`, {
+      duration: 10000, // 10 seconds tak visible rahe
+    });
   }, [user]);
 
   // ✅ Day 18: Updated executeTransfer with OTP
@@ -158,7 +161,7 @@ export function useTransferSupabase() {
         p_recipient_name: recipient.name,
         p_note: note || null,
         p_idempotency_key: idempotencyKey,
-        p_otp: otp || null, // ✅ Pass OTP
+        p_otp: otp || null,
       });
 
       if (rpcError) {
@@ -194,6 +197,6 @@ export function useTransferSupabase() {
     isExecuting,
     addBeneficiary,
     executeTransfer,
-    requestOtp, // ✅ Export it
+    requestOtp,
   };
 }

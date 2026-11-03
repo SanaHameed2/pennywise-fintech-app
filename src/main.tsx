@@ -2,6 +2,7 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
+import { Toaster } from 'sonner'; // ✅ Import Toaster from Sonner
 import { router } from './app/router';
 import { AuthProvider } from './contexts/AuthContext';
 import { DarkModeProvider } from './app/contexts/DarkModeContext';
@@ -35,6 +36,7 @@ ReactDOM.createRoot(rootElement).render(
               <RouterProvider router={router} />
             </Suspense>
             <ToastProvider />
+            <Toaster position="top-right" richColors /> {/* ✅ Added Sonner Toaster */}
           </AuthProvider>
         </DarkModeProvider>
       </QueryProvider>
