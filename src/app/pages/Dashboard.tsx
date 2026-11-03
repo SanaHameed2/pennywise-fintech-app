@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import { useAuth } from '../../hooks/useAuth';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
-import { formatMoney } from '../../utils/money'; // ✅ Safe Money Formatter
+import { formatMoney } from '../../utils/money';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ✅ Lazy load charts
@@ -270,7 +270,6 @@ export default function Dashboard() {
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const pkrBalance = wallet?.balance || 0;
   
-  // ✅ Prevent ESLint exhaustive-deps warning
   const liveTransactions = useMemo(() => rawTransactions || [], [rawTransactions]);
 
   const totalIncome = useMemo(() => 
@@ -284,7 +283,6 @@ export default function Dashboard() {
   const dynamicChartData = useMemo(() => generateChartData(pkrBalance), [pkrBalance]);
   const savings = useMemo(() => totalIncome - totalExpense, [totalIncome, totalExpense]);
   
-  // ✅ Dynamic Growth Calculation (Fixed -99.0% issue)
   const growth = useMemo(() => {
     if (totalIncome === 0) return '0.0';
     const netSavings = totalIncome - totalExpense;
@@ -645,7 +643,8 @@ export default function Dashboard() {
             <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" /> Recent transactions
             </h2>
-            <Link to="/transfer" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
+            {/* ✅ Yahan link change kiya gaya hai */}
+            <Link to="/transactions" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
               View All <ArrowUpRight size={14} />
             </Link>
           </div>
