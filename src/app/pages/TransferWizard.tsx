@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronRight, ChevronLeft, CheckCircle2,
-  Search, UserPlus, AlertCircle
+  Search, UserPlus, AlertCircle, Download // ✅ Download icon add kiya gaya
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
@@ -110,7 +110,6 @@ function Step1({
   const [newBank, setNewBank] = useState('');
   const [isAdding, setIsAdding] = useState(false);
 
-  // ✅ Fix: Sirf asli database wale beneficiaries return karein
   const safeBeneficiaries = useMemo(() => {
     return beneficiaries || [];
   }, [beneficiaries]);
@@ -233,7 +232,6 @@ function Step1({
       </div>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-        {/* ✅ Fix: Agar list khali ho toh message show karein */}
         {filtered.length === 0 ? (
           <p className="text-center text-sm text-white/40 py-4">
             No beneficiaries found. Click "Add New" to create one.
@@ -495,6 +493,7 @@ function Step3({
   );
 }
 
+// ✅ Step 4 with Receipt Download
 function Step4({
   beneficiary,
   amount,
@@ -508,6 +507,38 @@ function Step4({
 }) {
   const [txId] = useState(() => `PW-${Date.now().toString(36).toUpperCase()}`);
   const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
+  const dateStr = useMemo(() => new Date().toLocaleString(), []);
+
+  // ✅ Receipt Download Function
+  const downloadReceipt = () => {
+    const receiptContent = `
+=========================================
+           PENNYWISE RECEIPT
+=========================================
+Date:           ${dateStr}
+Transaction ID: ${txId}
+-----------------------------------------
+Beneficiary:    ${beneficiary.name}
+Bank:           ${beneficiary.bank}
+IBAN:           ${beneficiary.iban}
+Amount Sent:    Rs. ${formattedAmount}
+Status:         Completed
+=========================================
+   Thank you for using Pennywise!
+   Secure. Encrypted. Built for you.
+=========================================
+    `;
+    
+    const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Pennywise_Receipt_${txId}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-6 text-center">
@@ -522,6 +553,7 @@ function Step4({
 
       <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3">
         {[
+          ['Date', dateStr],
           ['Transaction ID', txId],
           ['Beneficiary', beneficiary.name],
           ['Amount Sent', `Rs. ${formattedAmount}`],
@@ -534,9 +566,21 @@ function Step4({
         ))}
       </div>
 
-      <button onClick={onReset} className="w-full bg-[#FF7F50] hover:bg-[#ff8f66] text-black py-3 rounded-xl font-semibold transition-all text-sm">
-        New Transfer
-      </button>
+      <div className="space-y-3">
+        <button 
+          onClick={downloadReceipt} 
+          className="w-full flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 py-3 rounded-xl font-semibold transition-all text-sm"
+        >
+          <Download className="w-4 h-4" /> Download Receipt
+        </button>
+        
+        <button 
+          onClick={onReset} 
+          className="w-full bg-[#FF7F50] hover:bg-[#ff8f66] text-black py-3 rounded-xl font-semibold transition-all text-sm"
+        >
+          New Transfer
+        </button>
+      </div>
     </div>
   );
 }
