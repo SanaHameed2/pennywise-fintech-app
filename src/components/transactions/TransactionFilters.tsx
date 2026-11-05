@@ -1,5 +1,5 @@
 // src/components/transactions/TransactionFilters.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, X } from 'lucide-react';
 import { FilterType, DateRange } from '../../hooks/useTransactions';
 

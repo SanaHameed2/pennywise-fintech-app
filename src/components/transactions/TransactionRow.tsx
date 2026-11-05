@@ -1,5 +1,5 @@
-import React from 'react';
 import { TrendingUp, TrendingDown, ArrowRightLeft } from 'lucide-react';
+
 import { formatMoney } from '../../utils/money';
 import { Transaction } from '../../hooks/useTransactions';
 
