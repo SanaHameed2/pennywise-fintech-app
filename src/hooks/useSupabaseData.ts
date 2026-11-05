@@ -55,6 +55,9 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export function useSupabaseData() {
   const { user } = useAuth();
+  // ✅ Capture primitive so useCallback deps match inferred deps
+  const userId = user?.id;
+
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -64,7 +67,7 @@ export function useSupabaseData() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAllData = useCallback(async () => {
-    if (!user?.id) {
+    if (!userId) {
       setLoading(false);
       return;
     }
@@ -74,10 +77,10 @@ export function useSupabaseData() {
       setError(null);
 
       const [walletResult, txResult, budgetsResult, goalsResult] = await Promise.all([
-        supabase.from('wallets').select('*').eq('user_id', user.id).maybeSingle(),
-        supabase.from('transactions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
-        supabase.from('budgets').select('*').eq('user_id', user.id),
-        supabase.from('savings_goals').select('*').eq('user_id', user.id),
+        supabase.from('wallets').select('*').eq('user_id', userId).maybeSingle(),
+        supabase.from('transactions').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
+        supabase.from('budgets').select('*').eq('user_id', userId),
+        supabase.from('savings_goals').select('*').eq('user_id', userId),
       ]);
 
       if (walletResult.data) setWallet(walletResult.data);
@@ -88,7 +91,7 @@ export function useSupabaseData() {
       const { data: expenses } = await supabase
         .from('transactions')
         .select('category, amount')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('type', 'expense');
 
       if (expenses) {
@@ -118,7 +121,7 @@ export function useSupabaseData() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [userId]);  // ✅ matches inferred primitive dep
 
   useEffect(() => {
     let cancelled = false;
@@ -131,6 +134,34 @@ export function useSupabaseData() {
     return () => { cancelled = true; };
   }, [fetchAllData]);
 
+  // ✅ Contribute to Savings Goal (RPC)
+  const contributeToGoal = useCallback(async (goalId: string, amount: number) => {
+    if (!userId) throw new Error('Not authenticated');
+    const idempotencyKey = crypto.randomUUID();
+    const { data, error: rpcError } = await supabase.rpc('contribute_to_goal', {
+      p_goal_id: goalId,
+      p_amount: amount,
+      p_idempotency_key: idempotencyKey,
+    });
+    if (rpcError) throw new Error(rpcError.message);
+    await fetchAllData();
+    return data as { success: boolean; new_wallet_balance: number; new_goal_amount: number };
+  }, [userId, fetchAllData]);
+
+  // ✅ Withdraw from Savings Goal (RPC)
+  const withdrawFromGoal = useCallback(async (goalId: string, amount: number) => {
+    if (!userId) throw new Error('Not authenticated');
+    const idempotencyKey = crypto.randomUUID();
+    const { data, error: rpcError } = await supabase.rpc('withdraw_from_goal', {
+      p_goal_id: goalId,
+      p_amount: amount,
+      p_idempotency_key: idempotencyKey,
+    });
+    if (rpcError) throw new Error(rpcError.message);
+    await fetchAllData();
+    return data as { success: boolean; new_wallet_balance: number; new_goal_amount: number };
+  }, [userId, fetchAllData]);
+
   return {
     wallet,
     transactions,
@@ -140,5 +171,7 @@ export function useSupabaseData() {
     loading,
     error,
     refresh: fetchAllData,
+    contributeToGoal,
+    withdrawFromGoal,
   };
 }

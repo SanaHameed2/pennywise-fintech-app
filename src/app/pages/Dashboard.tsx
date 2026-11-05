@@ -1,6 +1,6 @@
 // src/app/pages/Dashboard.tsx
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import {
   TrendingUp, TrendingDown, ArrowUpRight,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
+import SavingsGoalModal from '../components/SavingsGoalModal';
 import {
   ResponsiveContainer,
   PieChart,
@@ -54,13 +55,6 @@ const generateChartData = (currentBalance: number) => [
   { month: 'Apr', balance: currentBalance * 0.87, spending: 29000, income: 61000 },
   { month: 'May', balance: currentBalance * 0.94, spending: 61000, income: 58000 },
   { month: 'Jun', balance: currentBalance, spending: 42000, income: 65000 },
-];
-
-// ✅ Savings goals still mock (chart is now real)
-const savingsGoals = [
-  { name: 'Emergency Fund', current: 72000, target: 100000, color: '#FF7F50' },
-  { name: 'Vacation Trip', current: 45000, target: 100000, color: '#A78BFA' },
-  { name: 'New Laptop', current: 90000, target: 100000, color: '#34D399' },
 ];
 
 const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', gradient = false }: any) => {
@@ -156,26 +150,50 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
 });
 TransactionItem.displayName = 'TransactionItem';
 
-const SavingsGoalItem = React.memo(({ goal }: { goal: any }) => {
-  const percentage = (goal.current / goal.target) * 100;
+// ✅ Savings goal with Contribute / Withdraw actions
+const SavingsGoalItem = React.memo(({ goal, onAction }: {
+  goal: any;
+  onAction: (action: 'contribute' | 'withdraw', goal: any) => void;
+}) => {
+  const current = Number(goal.current_amount ?? goal.current ?? 0);
+  const target = Number(goal.target_amount ?? goal.target ?? 0);
+  const percentage = target > 0 ? (current / target) * 100 : 0;
+  const color = goal.color || '#FF7F50';
+
   return (
-    <div className="group hover:bg-white/5 rounded-xl p-3 transition-colors -mx-3">
+    <div className="group rounded-xl p-3 transition-colors -mx-3 hover:bg-white/5">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-sm font-medium text-white/80">{goal.name}</span>
         <span className="text-xs font-bold text-white/60">
-          Rs. {goal.current.toLocaleString()} <span className="text-white/30">/</span> Rs. {goal.target.toLocaleString()}
+          Rs. {current.toLocaleString()}
+          <span className="text-white/30"> / </span>
+          Rs. {target.toLocaleString()}
         </span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-2">
         <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-1000 ease-out"
-            style={{ width: `${Math.min(percentage, 100)}%`, background: goal.color }}
+            style={{ width: `${Math.min(percentage, 100)}%`, background: color }}
           />
         </div>
         <span className="text-xs font-bold text-white/50 w-10 text-right">
           {Math.round(percentage)}%
         </span>
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onAction('contribute', goal)}
+          className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition flex items-center justify-center gap-1"
+        >
+          <Plus className="w-3 h-3" /> Contribute
+        </button>
+        <button
+          onClick={() => onAction('withdraw', goal)}
+          className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition flex items-center justify-center gap-1"
+        >
+          <Minus className="w-3 h-3" /> Withdraw
+        </button>
       </div>
     </div>
   );
@@ -207,11 +225,20 @@ ExpenseCategoryItem.displayName = 'ExpenseCategoryItem';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  // ✅ Pull expenseCategories from hook
-  const { wallet, transactions: rawTransactions, expenseCategories, loading } = useSupabaseData();
-  
+
+  // ✅ Pull savingsGoals + RPCs from hook
+  const {
+    wallet,
+    transactions: rawTransactions,
+    expenseCategories,
+    savingsGoals,
+    loading,
+    contributeToGoal,
+    withdrawFromGoal,
+  } = useSupabaseData();
+
   const [showBalance, setShowBalance] = useState(true);
+  const [selectedGoal, setSelectedGoal] = useState<any | null>(null);
 
   const rawName = user?.email?.split('@')[0] || 'User';
   const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
@@ -220,30 +247,34 @@ export default function Dashboard() {
   const pkrBalance = wallet?.balance || 0;
   const liveTransactions = useMemo(() => rawTransactions || [], [rawTransactions]);
 
-  const totalIncome = useMemo(() => 
+  const totalIncome = useMemo(() =>
     liveTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0)
   , [liveTransactions]);
 
-  const totalExpense = useMemo(() => 
+  const totalExpense = useMemo(() =>
     liveTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0)
   , [liveTransactions]);
 
   const dynamicChartData = useMemo(() => generateChartData(pkrBalance), [pkrBalance]);
   const savings = useMemo(() => totalIncome - totalExpense, [totalIncome, totalExpense]);
-  
+
   const growth = useMemo(() => {
     if (totalIncome === 0) return '0.0';
     const netSavings = totalIncome - totalExpense;
     return ((netSavings / totalIncome) * 100).toFixed(1);
   }, [totalIncome, totalExpense]);
 
-  // ✅ Use dynamic categories from hook
   const displayCategories = useMemo(() => expenseCategories || [], [expenseCategories]);
 
-  // ✅ Calculate total from real data
   const totalExpenses = useMemo(
     () => displayCategories.reduce((sum, cat) => sum + cat.amount, 0),
     [displayCategories]
+  );
+
+  // ✅ Real total saved from hook
+  const totalSaved = useMemo(
+    () => (savingsGoals || []).reduce((sum, g: any) => sum + Number(g.current_amount ?? g.current ?? 0), 0),
+    [savingsGoals]
   );
 
   const handleToggleBalance = useCallback(() => {
@@ -254,6 +285,10 @@ export default function Dashboard() {
     navigate(path);
   }, [navigate]);
 
+  const handleGoalAction = useCallback((_action: 'contribute' | 'withdraw', goal: any) => {
+    setSelectedGoal(goal);
+  }, []);
+
   const transactionList = useMemo(() => {
     return liveTransactions.slice(0, 5).map((tx, idx) => (
       <TransactionItem key={tx.id || idx} transaction={tx} index={idx} />
@@ -261,10 +296,10 @@ export default function Dashboard() {
   }, [liveTransactions]);
 
   const savingsGoalList = useMemo(() => {
-    return savingsGoals.map((goal) => (
-      <SavingsGoalItem key={goal.name} goal={goal} />
+    return (savingsGoals || []).map((goal: any) => (
+      <SavingsGoalItem key={goal.id} goal={goal} onAction={handleGoalAction} />
     ));
-  }, []);
+  }, [savingsGoals, handleGoalAction]);
 
   const expenseCategoryList = useMemo(() => {
     return displayCategories.map((cat) => (
@@ -559,7 +594,7 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Savings Goals (mock) */}
+          {/* Savings Goals — REAL DATA with actions */}
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -576,14 +611,18 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-5">
-              {savingsGoalList}
+              {savingsGoalList.length > 0 ? savingsGoalList : (
+                <p className="text-white/40 text-sm text-center py-6">
+                  No goals yet. Create one to start saving.
+                </p>
+              )}
             </div>
 
             <div className="mt-5 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-white/40">Total Saved</span>
                 <span className="text-white font-bold">
-                  Rs. {(savingsGoals.reduce((sum, g) => sum + g.current, 0)).toLocaleString()}
+                  Rs. {formatMoney(totalSaved)}
                 </span>
               </div>
             </div>
@@ -639,6 +678,20 @@ export default function Dashboard() {
         </motion.div>
 
       </div>
+
+      {/* ✅ Savings Goal Modal */}
+      <AnimatePresence>
+        {selectedGoal && (
+          <SavingsGoalModal
+            goal={selectedGoal}
+            walletBalance={pkrBalance}
+            onClose={() => setSelectedGoal(null)}
+            onSuccess={() => setSelectedGoal(null)}
+            contributeFn={contributeToGoal}
+            withdrawFn={withdrawFromGoal}
+          />
+        )}
+      </AnimatePresence>
 
       <Footer />
     </div>
