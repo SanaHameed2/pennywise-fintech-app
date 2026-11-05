@@ -20,14 +20,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import { formatMoney } from '../../utils/money';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Lazy load charts
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DashboardCharts = lazy(() => import('./DashboardCharts'));
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Loading skeleton for charts
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const ChartSkeleton = () => (
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div className="lg:col-span-2 bg-[#0D0D12] border border-white/5 rounded-[24px] p-6 animate-pulse">
@@ -39,9 +33,6 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Animation Variants
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const fadeIn = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0 }
@@ -56,9 +47,6 @@ const stagger = {
   }
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Mock Data for Charts
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const generateChartData = (currentBalance: number) => [
   { month: 'Jan', balance: currentBalance * 0.65, spending: 45000, income: 52000 },
   { month: 'Feb', balance: currentBalance * 0.72, spending: 38000, income: 48000 },
@@ -68,23 +56,13 @@ const generateChartData = (currentBalance: number) => [
   { month: 'Jun', balance: currentBalance, spending: 42000, income: 65000 },
 ];
 
-const expenseCategories = [
-  { name: 'Food & Dining', amount: 14620, percentage: 34, color: '#FF7F50' },
-  { name: 'Transport', amount: 8950, percentage: 21, color: '#A78BFA' },
-  { name: 'Shopping', amount: 7880, percentage: 18, color: '#34D399' },
-  { name: 'Bills & Utilities', amount: 6430, percentage: 15, color: '#F59E0B' },
-  { name: 'Others', amount: 4800, percentage: 12, color: '#EF4444' },
-];
-
+// ✅ Savings goals still mock (chart is now real)
 const savingsGoals = [
   { name: 'Emergency Fund', current: 72000, target: 100000, color: '#FF7F50' },
   { name: 'Vacation Trip', current: 45000, target: 100000, color: '#A78BFA' },
   { name: 'New Laptop', current: 90000, target: 100000, color: '#34D399' },
 ];
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Quick Action Card
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', gradient = false }: any) => {
   return (
     <Link
@@ -112,12 +90,8 @@ const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', 
     </Link>
   );
 });
-
 QuickActionCard.displayName = 'QuickActionCard';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Metric Card
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const MetricCard = React.memo(({ label, value, icon: Icon, change, changeType = 'up', showBalance = true }: any) => {
   return (
     <motion.div
@@ -144,12 +118,8 @@ const MetricCard = React.memo(({ label, value, icon: Icon, change, changeType = 
     </motion.div>
   );
 });
-
 MetricCard.displayName = 'MetricCard';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Transaction Item
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const TransactionItem = React.memo(({ transaction, index }: { transaction: any; index: number }) => {
   const isIncome = transaction.type === 'income';
   const Icon = isIncome ? TrendingUp : TrendingDown;
@@ -173,10 +143,7 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
           </p>
           <p className="text-xs text-white/30">
             {transaction.created_at ? new Date(transaction.created_at).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
+              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
             }) : 'Recent'}
           </p>
         </div>
@@ -187,15 +154,10 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
     </motion.div>
   );
 });
-
 TransactionItem.displayName = 'TransactionItem';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Savings Goal Item
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SavingsGoalItem = React.memo(({ goal }: { goal: any }) => {
   const percentage = (goal.current / goal.target) * 100;
-
   return (
     <div className="group hover:bg-white/5 rounded-xl p-3 transition-colors -mx-3">
       <div className="flex items-center justify-between mb-1.5">
@@ -218,12 +180,8 @@ const SavingsGoalItem = React.memo(({ goal }: { goal: any }) => {
     </div>
   );
 });
-
 SavingsGoalItem.displayName = 'SavingsGoalItem';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Expense Category Item
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const ExpenseCategoryItem = React.memo(({ category }: { category: any }) => {
   return (
     <div className="flex items-center gap-3">
@@ -244,32 +202,22 @@ const ExpenseCategoryItem = React.memo(({ category }: { category: any }) => {
     </div>
   );
 });
-
 ExpenseCategoryItem.displayName = 'ExpenseCategoryItem';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Main Dashboard Component
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const { wallet, transactions: rawTransactions, loading } = useSupabaseData();
+  // ✅ Pull expenseCategories from hook
+  const { wallet, transactions: rawTransactions, expenseCategories, loading } = useSupabaseData();
   
   const [showBalance, setShowBalance] = useState(true);
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ✅ Dynamic User Data
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const rawName = user?.email?.split('@')[0] || 'User';
   const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
   const initials = displayName.substring(0, 2).toUpperCase();
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // ✅ Dynamic Financial Data
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   const pkrBalance = wallet?.balance || 0;
-  
   const liveTransactions = useMemo(() => rawTransactions || [], [rawTransactions]);
 
   const totalIncome = useMemo(() => 
@@ -289,7 +237,14 @@ export default function Dashboard() {
     return ((netSavings / totalIncome) * 100).toFixed(1);
   }, [totalIncome, totalExpense]);
 
-  const totalExpenses = useMemo(() => expenseCategories.reduce((sum, cat) => sum + cat.amount, 0), []);
+  // ✅ Use dynamic categories from hook
+  const displayCategories = useMemo(() => expenseCategories || [], [expenseCategories]);
+
+  // ✅ Calculate total from real data
+  const totalExpenses = useMemo(
+    () => displayCategories.reduce((sum, cat) => sum + cat.amount, 0),
+    [displayCategories]
+  );
 
   const handleToggleBalance = useCallback(() => {
     setShowBalance(prev => !prev);
@@ -312,12 +267,11 @@ export default function Dashboard() {
   }, []);
 
   const expenseCategoryList = useMemo(() => {
-    return expenseCategories.map((cat) => (
+    return displayCategories.map((cat) => (
       <ExpenseCategoryItem key={cat.name} category={cat} />
     ));
-  }, []);
+  }, [displayCategories]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-[#070707] flex items-center justify-center">
@@ -374,7 +328,6 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ─── MAIN CONTENT ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pb-16 pt-24 space-y-8">
 
         {/* ─── GREETING ─── */}
@@ -411,7 +364,6 @@ export default function Dashboard() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-3 gap-5"
         >
-          {/* Total Balance */}
           <motion.div
             variants={fadeIn}
             className="bg-gradient-to-br from-[#0D0D12] to-[#1A1A24] border border-white/5 rounded-[24px] p-6 shadow-2xl relative overflow-hidden group"
@@ -443,7 +395,6 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Net Cash Flow */}
           <motion.div
             variants={fadeIn}
             className="bg-[#0D0D12] border border-white/5 rounded-[24px] p-6 shadow-2xl hover:border-[#A78BFA]/20 transition-all"
@@ -470,7 +421,6 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Quick Stats */}
           <motion.div
             variants={fadeIn}
             className="bg-[#0D0D12] border border-white/5 rounded-[24px] p-6 shadow-2xl flex items-center justify-between"
@@ -558,7 +508,7 @@ export default function Dashboard() {
 
         {/* ─── EXPENSES + SAVINGS GOALS ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Expense Categories */}
+          {/* Expense Categories — REAL DATA */}
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -574,32 +524,42 @@ export default function Dashboard() {
 
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="w-40 h-40 flex-shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={expenseCategories}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="amount"
-                    >
-                      {expenseCategories.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                {displayCategories.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={displayCategories}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={2}
+                        dataKey="amount"
+                      >
+                        {displayCategories.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="w-full h-full rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
+                    <span className="text-xs text-white/30 text-center px-2">No expenses</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex-1 w-full space-y-2.5">
-                {expenseCategoryList}
+                {displayCategories.length > 0 ? expenseCategoryList : (
+                  <p className="text-white/40 text-sm text-center py-4">
+                    No expenses recorded yet. Send money to see chart.
+                  </p>
+                )}
               </div>
             </div>
           </motion.div>
 
-          {/* Savings Goals */}
+          {/* Savings Goals (mock) */}
           <motion.div
             initial="hidden"
             whileInView="visible"
@@ -643,7 +603,6 @@ export default function Dashboard() {
             <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5" /> Recent transactions
             </h2>
-            {/* ✅ Yahan link change kiya gaya hai */}
             <Link to="/transactions" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
               View All <ArrowUpRight size={14} />
             </Link>
