@@ -1,5 +1,5 @@
 // src/app/pages/TransactionHistory.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';  
 import { motion } from 'framer-motion';
 import { Calendar, Search, Loader2, AlertCircle } from 'lucide-react';
 import { useTransactions, PAGE_SIZE, FilterType, DateRange } from '../../hooks/useTransactions';
