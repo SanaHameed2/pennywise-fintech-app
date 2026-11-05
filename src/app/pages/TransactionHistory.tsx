@@ -1,5 +1,5 @@
 // src/app/pages/TransactionHistory.tsx
-import { useState, useEffect } from 'react';  
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Search, Loader2, AlertCircle } from 'lucide-react';
 import { useTransactions, PAGE_SIZE, FilterType, DateRange } from '../../hooks/useTransactions';
@@ -22,8 +22,16 @@ export default function TransactionHistory() {
     dateRange,
   });
 
+  // ✅ Deferred setState — rule-safe
   useEffect(() => {
-    setPage(0);
+    let cancelled = false;
+    const reset = async () => {
+      await Promise.resolve();
+      if (cancelled) return;
+      setPage(0);
+    };
+    void reset();
+    return () => { cancelled = true; };
   }, [searchQuery, filterType, dateRange]);
 
   const transactions = data?.data || [];

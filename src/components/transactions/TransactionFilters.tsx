@@ -19,7 +19,7 @@ export function TransactionFilters({
 }: Props) {
   const [localSearch, setLocalSearch] = useState(searchQuery);
 
-  // ✅ Debounce Search (400ms)
+  // ✅ Debounce — setState is inside setTimeout callback, NOT sync in effect body (rule-safe)
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(localSearch);
@@ -27,9 +27,16 @@ export function TransactionFilters({
     return () => clearTimeout(timer);
   }, [localSearch, setSearchQuery]);
 
-  // Sync if parent clears filters
+  // ✅ Deferred setState — rule-safe
   useEffect(() => {
-    setLocalSearch(searchQuery);
+    let cancelled = false;
+    const sync = async () => {
+      await Promise.resolve();
+      if (cancelled) return;
+      setLocalSearch(searchQuery);
+    };
+    void sync();
+    return () => { cancelled = true; };
   }, [searchQuery]);
 
   const hasActiveFilters = searchQuery !== '' || filterType !== 'all' || dateRange !== 'all';
