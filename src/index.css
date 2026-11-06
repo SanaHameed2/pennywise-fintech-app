@@ -1,4 +1,5 @@
-/* ✅ @import SAB SE PEHLE */
+/* ✅ URDU FONT IMPORT (Must be at the top) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
 @import '../default_shadcn_theme.css';
 
 /* ✅ Tailwind directives */
@@ -29,8 +30,8 @@
   body {
     @apply bg-[#0a0a0a] text-slate-100 antialiased selection:bg-[#FF7F50]/20 selection:text-[#FF7F50];
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-size: 17px;        /* Bada font size */
-    line-height: 1.7;       /* Zyada breathing room */
+    font-size: 17px;
+    line-height: 1.7;
     font-variant-numeric: lining-nums;
   }
 
@@ -236,4 +237,41 @@ h1, h2, h3, h4, h5, h6 {
 /* 6. Force opacity to 100% on text elements */
 .opacity-30, .opacity-40, .opacity-50, .opacity-60, .opacity-70, .opacity-80 {
   opacity: 1 !important;
+}
+
+/* ==========================================
+   🇵🇰 URDU FONT & RTL SUPPORT (DAY 24) 🇵🇰
+   ========================================== */
+
+/* Apply Nastaliq font ONLY when language is Urdu */
+html[lang="ur"] body,
+html[lang="ur"] h1,
+html[lang="ur"] h2,
+html[lang="ur"] h3,
+html[lang="ur"] h4,
+html[lang="ur"] h5,
+html[lang="ur"] h6,
+html[lang="ur"] p,
+html[lang="ur"] span,
+html[lang="ur"] button,
+html[lang="ur"] a,
+html[lang="ur"] input,
+html[lang="ur"] textarea {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif !important;
+  /* Nastaliq font lamba hota hai, isliye line-height barhana zaroori hai */
+  line-height: 2.2 !important; 
+}
+
+/* Numbers aur English text (jaise Rs. 500) ko LTR aur Inter font mein hi rakhein */
+html[lang="ur"] .font-mono,
+html[lang="ur"] [dir="ltr"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* Tailwind RTL utility fallbacks (Agar Tailwind config update nahi karni) */
+html[dir="rtl"] .rtl\:rotate-180 {
+  transform: rotate(180deg);
+}
+html[dir="rtl"] .rtl\:-scale-x-100 {
+  transform: scaleX(-1);
 }

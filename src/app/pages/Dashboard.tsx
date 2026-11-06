@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
-import { useTranslation } from 'react-i18next';   // ✅ ADDED
+import { useTranslation } from 'react-i18next';
 import {
   TrendingUp, TrendingDown, ArrowUpRight,
   Eye, EyeOff, Bell, Settings, Send, Plus, Minus, CreditCard,
@@ -59,7 +59,7 @@ const generateChartData = (currentBalance: number) => [
 ];
 
 const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', gradient = false }: any) => {
-  const { t } = useTranslation();   // ✅ ADDED
+  const { t } = useTranslation();
   return (
     <Link
       to={to}
@@ -81,7 +81,7 @@ const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', 
         {label}
       </p>
       <p className="text-[10px] text-white/30 mt-1 group-hover:text-white/50 transition-colors">
-        {t('dashboard.clickToProceed', 'Click to proceed →')}   {/* ✅ */}
+        {t('dashboard.clickToProceed', 'Click to proceed →')}
       </p>
     </Link>
   );
@@ -117,7 +117,7 @@ const MetricCard = React.memo(({ label, value, icon: Icon, change, changeType = 
 MetricCard.displayName = 'MetricCard';
 
 const TransactionItem = React.memo(({ transaction, index }: { transaction: any; index: number }) => {
-  const { t } = useTranslation();   // ✅ ADDED
+  const { t } = useTranslation();
   const isIncome = transaction.type === 'income';
   const Icon = isIncome ? TrendingUp : TrendingDown;
   const iconColor = isIncome ? '#34D399' : '#EF4444';
@@ -157,7 +157,7 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
   goal: any;
   onAction: (action: 'contribute' | 'withdraw', goal: any) => void;
 }) => {
-  const { t } = useTranslation();   // ✅ ADDED
+  const { t } = useTranslation();
   const current = Number(goal.current_amount ?? goal.current ?? 0);
   const target = Number(goal.target_amount ?? goal.target ?? 0);
   const percentage = target > 0 ? (current / target) * 100 : 0;
@@ -180,7 +180,7 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
             style={{ width: `${Math.min(percentage, 100)}%`, background: color }}
           />
         </div>
-        <span className="text-xs font-bold text-white/50 w-10 text-right">
+        <span className="text-xs font-bold text-white/50 w-10 text-end">
           {Math.round(percentage)}%
         </span>
       </div>
@@ -189,13 +189,13 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
           onClick={() => onAction('contribute', goal)}
           className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition flex items-center justify-center gap-1"
         >
-          <Plus className="w-3 h-3" /> {t('dashboard.contribute', 'Contribute')}   {/* ✅ */}
+          <Plus className="w-3 h-3" /> {t('dashboard.contribute', 'Contribute')}
         </button>
         <button
           onClick={() => onAction('withdraw', goal)}
           className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition flex items-center justify-center gap-1"
         >
-          <Minus className="w-3 h-3" /> {t('dashboard.withdrawGoal', 'Withdraw')}   {/* ✅ */}
+          <Minus className="w-3 h-3" /> {t('dashboard.withdrawGoal', 'Withdraw')}
         </button>
       </div>
     </div>
@@ -219,7 +219,7 @@ const ExpenseCategoryItem = React.memo(({ category }: { category: any }) => {
           />
         </div>
       </div>
-      <span className="text-[10px] text-white/30 w-8 text-right">{category.percentage}%</span>
+      <span className="text-[10px] text-white/30 w-8 text-end">{category.percentage}%</span>
     </div>
   );
 });
@@ -228,7 +228,7 @@ ExpenseCategoryItem.displayName = 'ExpenseCategoryItem';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();   // ✅ ADDED
+  const { t } = useTranslation();
 
   const {
     wallet,
@@ -336,14 +336,15 @@ export default function Dashboard() {
               Pennywise<span className="text-[#FF7F50]">.</span>
             </span>
             <span className="hidden sm:inline text-[10px] font-medium uppercase tracking-wider text-[#FF7F50] bg-[#FF7F50]/10 px-2.5 py-1 rounded-full border border-[#FF7F50]/20">
-              {t('dashboard.financeHub', 'Finance Hub')}   {/* ✅ */}
+              {t('dashboard.financeHub', 'Finance Hub')}
             </span>
           </Link>
 
           <div className="flex items-center gap-3">
             <button className="relative p-2 rounded-xl hover:bg-white/5 transition-colors">
               <Bell className="w-5 h-5 text-white/60 hover:text-white/90 transition" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#FF7F50] rounded-full ring-2 ring-[#070707] animate-pulse" />
+              {/* ✅ RTL Fix: right-1.5 to end-1.5 */}
+              <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-[#FF7F50] rounded-full ring-2 ring-[#070707] animate-pulse" />
             </button>
             <button
               onClick={() => handleNavigate('/settings')}
@@ -358,7 +359,7 @@ export default function Dashboard() {
               </div>
               <div className="hidden md:block">
                 <p className="text-xs font-semibold text-white/90">{displayName}</p>
-                <p className="text-[10px] text-[#FF7F50]">{t('dashboard.premium', 'Premium')}</p>   {/* ✅ */}
+                <p className="text-[10px] text-[#FF7F50]">{t('dashboard.premium', 'Premium')}</p>
               </div>
             </div>
           </div>
@@ -378,20 +379,21 @@ export default function Dashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               {new Date().getHours() < 12 ? t('dashboard.greetingMorning') :
                new Date().getHours() < 18 ? t('dashboard.greetingAfternoon') :
-               t('dashboard.greetingEvening')}, {displayName}   {/* ✅ */}
-              <span className="inline-block ml-2 animate-pulse">👋</span>
+               t('dashboard.greetingEvening')}, {displayName}
+              {/* ✅ RTL Fix: ml-2 to ms-2 */}
+              <span className="inline-block ms-2 animate-pulse">👋</span>
             </h1>
             <p className="text-sm text-white/40 flex items-center gap-2 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
-              {t('dashboard.systemNormal', 'Your financial system is operating normally.')}   {/* ✅ */}
+              {t('dashboard.systemNormal', 'Your financial system is operating normally.')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/50 flex items-center gap-1.5">
-              <Shield className="w-3 h-3 text-[#FF7F50]" /> {t('dashboard.bankGrade', 'Bank-grade')}   {/* ✅ */}
+              <Shield className="w-3 h-3 text-[#FF7F50]" /> {t('dashboard.bankGrade', 'Bank-grade')}
             </span>
             <span className="text-xs px-3 py-1.5 rounded-full bg-[#FF7F50]/10 text-[#FF7F50] border border-[#FF7F50]/20 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3" /> {t('dashboard.premium', 'Premium')}   {/* ✅ */}
+              <Sparkles className="w-3 h-3" /> {t('dashboard.premium', 'Premium')}
             </span>
           </div>
         </motion.div>
@@ -407,12 +409,13 @@ export default function Dashboard() {
             variants={fadeIn}
             className="bg-gradient-to-br from-[#0D0D12] to-[#1A1A24] border border-white/5 rounded-[24px] p-6 shadow-2xl relative overflow-hidden group"
           >
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF7F50]/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+            {/* ✅ RTL Fix: -right-20 to -end-20 */}
+            <div className="absolute -top-20 -end-20 w-40 h-40 bg-[#FF7F50]/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                    {t('dashboard.totalBalance')}   {/* ✅ */}
+                    {t('dashboard.totalBalance')}
                   </p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <p className="text-3xl font-black text-white tracking-tight">
@@ -443,7 +446,7 @@ export default function Dashboard() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  {t('dashboard.netCashFlow')}   {/* ✅ */}
+                  {t('dashboard.netCashFlow')}
                 </p>
                 <p className="text-3xl font-black text-white tracking-tight mt-1.5">
                   Rs. {formatMoney(totalIncome - totalExpense)}
@@ -471,21 +474,22 @@ export default function Dashboard() {
             <div className="flex gap-6">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  {t('dashboard.income')}   {/* ✅ */}
+                  {t('dashboard.income')}
                 </p>
                 <p className="text-lg font-bold text-[#34D399]">Rs. {formatMoney(totalIncome)}</p>
               </div>
               <div className="w-px bg-white/10" />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                  {t('dashboard.expenses')}   {/* ✅ */}
+                  {t('dashboard.expenses')}
                 </p>
                 <p className="text-lg font-bold text-[#EF4444]">Rs. {formatMoney(totalExpense)}</p>
               </div>
             </div>
-            <div className="text-right">
+            {/* ✅ RTL Fix: text-right to text-end */}
+            <div className="text-end">
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                {t('dashboard.savings')}   {/* ✅ */}
+                {t('dashboard.savings')}
               </p>
               <p className="text-lg font-bold text-[#F59E0B]">Rs. {formatMoney(savings)}</p>
             </div>
@@ -495,7 +499,7 @@ export default function Dashboard() {
         {/* ─── QUICK ACTIONS ─── */}
         <div>
           <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold mb-4 flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5" /> {t('dashboard.quickActions')}   {/* ✅ */}
+            <Zap className="w-3.5 h-3.5" /> {t('dashboard.quickActions')}
           </h2>
           <motion.div
             variants={stagger}
@@ -503,10 +507,10 @@ export default function Dashboard() {
             animate="visible"
             className="grid grid-cols-2 sm:grid-cols-4 gap-3"
           >
-            <QuickActionCard icon={Send} label={t('nav.transfer')} to="/transfer" />   {/* ✅ */}
-            <QuickActionCard icon={Plus} label={t('dashboard.addMoney')} to="/transfer" gradient />   {/* ✅ */}
-            <QuickActionCard icon={Minus} label={t('dashboard.withdraw')} to="/transfer" color="#EF4444" />   {/* ✅ */}
-            <QuickActionCard icon={CreditCard} label={t('nav.cards')} to="/cards" color="#A78BFA" />   {/* ✅ */}
+            <QuickActionCard icon={Send} label={t('nav.transfer')} to="/transfer" />
+            <QuickActionCard icon={Plus} label={t('dashboard.addMoney')} to="/transfer" gradient />
+            <QuickActionCard icon={Minus} label={t('dashboard.withdraw')} to="/transfer" color="#EF4444" />
+            <QuickActionCard icon={CreditCard} label={t('nav.cards')} to="/cards" color="#A78BFA" />
           </motion.div>
         </div>
 
@@ -517,10 +521,10 @@ export default function Dashboard() {
           animate="visible"
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
-          <MetricCard label={t('dashboard.income')} value={`Rs. ${formatMoney(totalIncome)}`} icon={TrendingUp} change="+12.5%" changeType="up" showBalance={showBalance} />   {/* ✅ */}
-          <MetricCard label={t('dashboard.expenses')} value={`Rs. ${formatMoney(totalExpense)}`} icon={TrendingDown} change="-8.3%" changeType="down" showBalance={showBalance} />   {/* ✅ */}
-          <MetricCard label={t('dashboard.savings')} value={`Rs. ${formatMoney(savings)}`} icon={Wallet} showBalance={showBalance} />   {/* ✅ */}
-          <MetricCard label={t('dashboard.growth', 'Growth')} value={`${growth}%`} icon={BarChart3} change="↑ 2.1%" changeType="up" showBalance={true} />   {/* ✅ */}
+          <MetricCard label={t('dashboard.income')} value={`Rs. ${formatMoney(totalIncome)}`} icon={TrendingUp} change="+12.5%" changeType="up" showBalance={showBalance} />
+          <MetricCard label={t('dashboard.expenses')} value={`Rs. ${formatMoney(totalExpense)}`} icon={TrendingDown} change="-8.3%" changeType="down" showBalance={showBalance} />
+          <MetricCard label={t('dashboard.savings')} value={`Rs. ${formatMoney(savings)}`} icon={Wallet} showBalance={showBalance} />
+          <MetricCard label={t('dashboard.growth', 'Growth')} value={`${growth}%`} icon={BarChart3} change="↑ 2.1%" changeType="up" showBalance={true} />
         </motion.div>
 
         {/* ─── CHARTS SECTION ─── */}
@@ -537,14 +541,15 @@ export default function Dashboard() {
           transition={{ duration: 0.5 }}
           className="bg-gradient-to-br from-[#FF7F50]/5 via-[#A78BFA]/5 to-transparent border border-[#FF7F50]/10 rounded-[24px] shadow-2xl p-6 relative overflow-hidden group"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF7F50]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+          {/* ✅ RTL Fix: right-0 to end-0 */}
+          <div className="absolute top-0 end-0 w-64 h-64 bg-[#FF7F50]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FF7F50]/10 border border-[#FF7F50]/20 flex items-center justify-center flex-shrink-0">
               <AlertCircle className="w-5 h-5 text-[#FF7F50]" />
             </div>
             <div className="flex-1">
               <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">
-                {t('dashboard.financialInsight', 'Financial Insight')}   {/* ✅ */}
+                {t('dashboard.financialInsight', 'Financial Insight')}
               </p>
               <p className="text-white/70 text-sm mt-0.5">
                 {t('dashboard.financialInsightMessage', 'Your spending decreased 12% compared to last month. Potential monthly savings:')}{' '}
@@ -552,7 +557,9 @@ export default function Dashboard() {
               </p>
             </div>
             <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium whitespace-nowrap">
-              {t('dashboard.viewReport', 'View Report')} <ChevronRight className="w-4 h-4" />   {/* ✅ */}
+              {t('dashboard.viewReport', 'View Report')} 
+              {/* ✅ RTL Fix: rtl:rotate-180 */}
+              <ChevronRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           </div>
         </motion.div>
@@ -570,7 +577,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">
-                {t('dashboard.expenseCategories')}   {/* ✅ */}
+                {t('dashboard.expenseCategories')}
               </h2>
               <span className="text-xs text-white/40 font-bold">Rs. {formatMoney(totalExpenses)}</span>
             </div>
@@ -598,7 +605,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="w-full h-full rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
                     <span className="text-xs text-white/30 text-center px-2">
-                      {t('dashboard.noExpensesShort', 'No expenses')}   {/* ✅ */}
+                      {t('dashboard.noExpensesShort', 'No expenses')}
                     </span>
                   </div>
                 )}
@@ -607,7 +614,7 @@ export default function Dashboard() {
               <div className="flex-1 w-full space-y-2.5">
                 {displayCategories.length > 0 ? expenseCategoryList : (
                   <p className="text-white/40 text-sm text-center py-4">
-                    {t('dashboard.noExpenses')}   {/* ✅ */}
+                    {t('dashboard.noExpenses')}
                   </p>
                 )}
               </div>
@@ -625,24 +632,24 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
-                <Target className="w-3.5 h-3.5" /> {t('dashboard.savingsGoals')}   {/* ✅ */}
+                <Target className="w-3.5 h-3.5" /> {t('dashboard.savingsGoals')}
               </h2>
               <span className="text-xs text-white/40">
-                {t('dashboard.trackProgress', 'Track your progress')}   {/* ✅ */}
+                {t('dashboard.trackProgress', 'Track your progress')}
               </span>
             </div>
 
             <div className="space-y-5">
               {savingsGoalList.length > 0 ? savingsGoalList : (
                 <p className="text-white/40 text-sm text-center py-6">
-                  {t('dashboard.noGoals', 'No goals yet. Create one to start saving.')}   {/* ✅ */}
+                  {t('dashboard.noGoals', 'No goals yet. Create one to start saving.')}
                 </p>
               )}
             </div>
 
             <div className="mt-5 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-white/40">{t('dashboard.totalSaved')}</span>   {/* ✅ */}
+                <span className="text-white/40">{t('dashboard.totalSaved')}</span>
                 <span className="text-white font-bold">
                   Rs. {formatMoney(totalSaved)}
                 </span>
@@ -662,17 +669,19 @@ export default function Dashboard() {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5" /> {t('dashboard.recentTransactions')}   {/* ✅ */}
+              <Calendar className="w-3.5 h-3.5" /> {t('dashboard.recentTransactions')}
             </h2>
             <Link to="/transactions" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
-              {t('dashboard.viewAll')} <ArrowUpRight size={14} />   {/* ✅ */}
+              {t('dashboard.viewAll')} 
+              {/* ✅ RTL Fix: rtl:-scale-x-100 */}
+              <ArrowUpRight size={14} className="rtl:-scale-x-100" />
             </Link>
           </div>
 
           <div className="space-y-2">
             {liveTransactions.length > 0 ? transactionList : (
               <p className="text-white/40 text-sm text-center py-4">
-                {t('dashboard.noTransactions')}   {/* ✅ */}
+                {t('dashboard.noTransactions')}
               </p>
             )}
           </div>
@@ -693,15 +702,17 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm font-semibold text-white">
-                {t('dashboard.secureEncrypted', 'Secure. Encrypted. Built for you.')}   {/* ✅ */}
+                {t('dashboard.secureEncrypted', 'Secure. Encrypted. Built for you.')}
               </p>
               <p className="text-xs text-white/40">
-                {t('dashboard.dataProtected', 'Your data is protected with bank-grade security.')}   {/* ✅ */}
+                {t('dashboard.dataProtected', 'Your data is protected with bank-grade security.')}
               </p>
             </div>
           </div>
           <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium">
-            {t('dashboard.learnMore', 'Learn more')} <ChevronRight className="w-4 h-4" />   {/* ✅ */}
+            {t('dashboard.learnMore', 'Learn more')} 
+            {/* ✅ RTL Fix: rtl:rotate-180 */}
+            <ChevronRight className="w-4 h-4 rtl:rotate-180" />
           </button>
         </motion.div>
 

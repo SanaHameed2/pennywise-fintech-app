@@ -25,4 +25,14 @@ i18n
     },
   });
 
+// ✅ DYNAMIC RTL & LANG SETUP
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+  document.documentElement.dir = lng === 'ur' ? 'rtl' : 'ltr';
+});
+
+// Initial load ke liye
+document.documentElement.lang = i18n.language;
+document.documentElement.dir = i18n.language === 'ur' ? 'rtl' : 'ltr';
+
 export default i18n;

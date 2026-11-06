@@ -1,9 +1,9 @@
 // src/app/components/Navbar.tsx
 import React, { memo, useState, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';   // ✅ ADDED
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
-import { LanguageToggle } from '../../components/LanguageToggle';   // ✅ ADDED
+import { LanguageToggle } from '../../components/LanguageToggle';
 import {
   Settings,
   LogOut,
@@ -17,9 +17,6 @@ import {
   Loader2,
 } from 'lucide-react';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ NavLink Sub-component (memoized)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const NavLink = memo(({
   to,
   label,
@@ -46,12 +43,8 @@ const NavLink = memo(({
     </Link>
   );
 });
-
 NavLink.displayName = 'NavLink';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ MobileNavLink Sub-component (memoized)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const MobileNavLink = memo(({
   to,
   label,
@@ -80,17 +73,13 @@ const MobileNavLink = memo(({
     </Link>
   );
 });
-
 MobileNavLink.displayName = 'MobileNavLink';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Main Navbar Component (memoized)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const Navbar = memo(() => {
   const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();   // ✅ ADDED
+  const { t } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -116,7 +105,6 @@ const Navbar = memo(() => {
     return location.pathname === path;
   }, [location.pathname]);
 
-  // ✅ Translated nav links
   const navLinks = [
     { path: '/', label: t('nav.home'), icon: Home },
     { path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard, protected: true },
@@ -129,7 +117,6 @@ const Navbar = memo(() => {
     !link.protected || (link.protected && user)
   );
 
-  // Show loading state
   if (loading) {
     return (
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/5">
@@ -141,7 +128,7 @@ const Navbar = memo(() => {
             <div className="flex items-center gap-3">
               <Loader2 className="w-5 h-5 text-[#FF7F50] animate-spin" />
               <span className="text-sm text-white/50 hidden sm:inline">
-                {t('common.loading')}   {/* ✅ Translated */}
+                {t('common.loading')}
               </span>
             </div>
           </div>
@@ -175,10 +162,9 @@ const Navbar = memo(() => {
             })}
 
             {user ? (
-              <div className="flex items-center gap-4 ml-4 pl-4 border-l border-white/10">
-                {/* ✅ Language Toggle (desktop) */}
+              /* ✅ RTL Fix: ml-4 pl-4 border-l changed to ms-4 ps-4 border-s */
+              <div className="flex items-center gap-4 ms-4 ps-4 border-s border-white/10">
                 <LanguageToggle />
-
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#FF7F50]/20 flex items-center justify-center">
                     <User className="w-3.5 h-3.5 text-[#FF7F50]" />
@@ -197,25 +183,24 @@ const Navbar = memo(() => {
                   ) : (
                     <LogOut className="w-4 h-4" />
                   )}
-                  {isLoggingOut ? t('common.loading') : t('nav.logout')}   {/* ✅ */}
+                  {isLoggingOut ? t('common.loading') : t('nav.logout')}
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 ml-4 pl-4 border-l border-white/10">
-                {/* ✅ Language Toggle (also for logged-out users) */}
+              /* ✅ RTL Fix: ml-4 pl-4 border-l changed to ms-4 ps-4 border-s */
+              <div className="flex items-center gap-3 ms-4 ps-4 border-s border-white/10">
                 <LanguageToggle />
-
                 <Link
                   to="/login"
                   className="text-white/70 hover:text-white transition-colors text-sm"
                 >
-                  {t('nav.login')}   {/* ✅ */}
+                  {t('nav.login')}
                 </Link>
                 <Link
                   to="/signup"
                   className="bg-[#FF7F50] hover:bg-[#ff8f66] text-black font-semibold text-sm px-4 py-2 rounded-xl transition-all shadow-[0_4px_20px_rgba(255,127,80,0.2)]"
                 >
-                  {t('nav.signup')}   {/* ✅ */}
+                  {t('nav.signup')}
                 </Link>
               </div>
             )}
@@ -262,12 +247,9 @@ const Navbar = memo(() => {
                     <p className="text-xs text-white/50">{user?.email}</p>
                   </div>
                 </div>
-
-                {/* ✅ Language Toggle (mobile) */}
                 <div className="px-4 pt-2">
                   <LanguageToggle />
                 </div>
-
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
@@ -278,29 +260,27 @@ const Navbar = memo(() => {
                   ) : (
                     <LogOut className="w-4 h-4" />
                   )}
-                  {isLoggingOut ? t('common.loading') : t('nav.logout')}   {/* ✅ */}
+                  {isLoggingOut ? t('common.loading') : t('nav.logout')}
                 </button>
               </>
             ) : (
               <div className="flex flex-col gap-2 pt-2 border-t border-white/5">
-                {/* ✅ Language Toggle (mobile, logged-out) */}
                 <div className="px-1">
                   <LanguageToggle />
                 </div>
-
                 <Link
                   to="/login"
                   onClick={closeMobileMenu}
                   className="flex items-center justify-center px-4 py-3 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
                 >
-                  {t('nav.login')}   {/* ✅ */}
+                  {t('nav.login')}
                 </Link>
                 <Link
                   to="/signup"
                   onClick={closeMobileMenu}
                   className="flex items-center justify-center px-4 py-3 rounded-xl text-sm bg-[#FF7F50] text-black font-semibold hover:bg-[#ff8f66] transition-all"
                 >
-                  {t('nav.signup')}   {/* ✅ */}
+                  {t('nav.signup')}
                 </Link>
               </div>
             )}
