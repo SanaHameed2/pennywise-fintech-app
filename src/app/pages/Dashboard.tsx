@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';   // ✅ ADDED
 import {
   TrendingUp, TrendingDown, ArrowUpRight,
   Eye, EyeOff, Bell, Settings, Send, Plus, Minus, CreditCard,
@@ -58,6 +59,7 @@ const generateChartData = (currentBalance: number) => [
 ];
 
 const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', gradient = false }: any) => {
+  const { t } = useTranslation();   // ✅ ADDED
   return (
     <Link
       to={to}
@@ -79,7 +81,7 @@ const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', 
         {label}
       </p>
       <p className="text-[10px] text-white/30 mt-1 group-hover:text-white/50 transition-colors">
-        Click to proceed →
+        {t('dashboard.clickToProceed', 'Click to proceed →')}   {/* ✅ */}
       </p>
     </Link>
   );
@@ -115,6 +117,7 @@ const MetricCard = React.memo(({ label, value, icon: Icon, change, changeType = 
 MetricCard.displayName = 'MetricCard';
 
 const TransactionItem = React.memo(({ transaction, index }: { transaction: any; index: number }) => {
+  const { t } = useTranslation();   // ✅ ADDED
   const isIncome = transaction.type === 'income';
   const Icon = isIncome ? TrendingUp : TrendingDown;
   const iconColor = isIncome ? '#34D399' : '#EF4444';
@@ -133,12 +136,12 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
         </div>
         <div>
           <p className="text-sm font-semibold text-white/80 group-hover:text-white transition">
-            {transaction.description || transaction.category || 'Transaction'}
+            {transaction.description || transaction.category || t('common.transaction', 'Transaction')}
           </p>
           <p className="text-xs text-white/30">
             {transaction.created_at ? new Date(transaction.created_at).toLocaleDateString('en-US', {
               month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            }) : 'Recent'}
+            }) : t('common.recent', 'Recent')}
           </p>
         </div>
       </div>
@@ -150,11 +153,11 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
 });
 TransactionItem.displayName = 'TransactionItem';
 
-// ✅ Savings goal with Contribute / Withdraw actions
 const SavingsGoalItem = React.memo(({ goal, onAction }: {
   goal: any;
   onAction: (action: 'contribute' | 'withdraw', goal: any) => void;
 }) => {
+  const { t } = useTranslation();   // ✅ ADDED
   const current = Number(goal.current_amount ?? goal.current ?? 0);
   const target = Number(goal.target_amount ?? goal.target ?? 0);
   const percentage = target > 0 ? (current / target) * 100 : 0;
@@ -186,13 +189,13 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
           onClick={() => onAction('contribute', goal)}
           className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition flex items-center justify-center gap-1"
         >
-          <Plus className="w-3 h-3" /> Contribute
+          <Plus className="w-3 h-3" /> {t('dashboard.contribute', 'Contribute')}   {/* ✅ */}
         </button>
         <button
           onClick={() => onAction('withdraw', goal)}
           className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition flex items-center justify-center gap-1"
         >
-          <Minus className="w-3 h-3" /> Withdraw
+          <Minus className="w-3 h-3" /> {t('dashboard.withdrawGoal', 'Withdraw')}   {/* ✅ */}
         </button>
       </div>
     </div>
@@ -225,8 +228,8 @@ ExpenseCategoryItem.displayName = 'ExpenseCategoryItem';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();   // ✅ ADDED
 
-  // ✅ Pull savingsGoals + RPCs from hook
   const {
     wallet,
     transactions: rawTransactions,
@@ -271,7 +274,6 @@ export default function Dashboard() {
     [displayCategories]
   );
 
-  // ✅ Real total saved from hook
   const totalSaved = useMemo(
     () => (savingsGoals || []).reduce((sum, g: any) => sum + Number(g.current_amount ?? g.current ?? 0), 0),
     [savingsGoals]
@@ -334,7 +336,7 @@ export default function Dashboard() {
               Pennywise<span className="text-[#FF7F50]">.</span>
             </span>
             <span className="hidden sm:inline text-[10px] font-medium uppercase tracking-wider text-[#FF7F50] bg-[#FF7F50]/10 px-2.5 py-1 rounded-full border border-[#FF7F50]/20">
-              Finance Hub
+              {t('dashboard.financeHub', 'Finance Hub')}   {/* ✅ */}
             </span>
           </Link>
 
@@ -356,7 +358,7 @@ export default function Dashboard() {
               </div>
               <div className="hidden md:block">
                 <p className="text-xs font-semibold text-white/90">{displayName}</p>
-                <p className="text-[10px] text-[#FF7F50]">Premium</p>
+                <p className="text-[10px] text-[#FF7F50]">{t('dashboard.premium', 'Premium')}</p>   {/* ✅ */}
               </div>
             </div>
           </div>
@@ -374,20 +376,22 @@ export default function Dashboard() {
         >
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {displayName}
+              {new Date().getHours() < 12 ? t('dashboard.greetingMorning') :
+               new Date().getHours() < 18 ? t('dashboard.greetingAfternoon') :
+               t('dashboard.greetingEvening')}, {displayName}   {/* ✅ */}
               <span className="inline-block ml-2 animate-pulse">👋</span>
             </h1>
             <p className="text-sm text-white/40 flex items-center gap-2 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
-              Your financial system is operating normally.
+              {t('dashboard.systemNormal', 'Your financial system is operating normally.')}   {/* ✅ */}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/50 flex items-center gap-1.5">
-              <Shield className="w-3 h-3 text-[#FF7F50]" /> Bank-grade
+              <Shield className="w-3 h-3 text-[#FF7F50]" /> {t('dashboard.bankGrade', 'Bank-grade')}   {/* ✅ */}
             </span>
             <span className="text-xs px-3 py-1.5 rounded-full bg-[#FF7F50]/10 text-[#FF7F50] border border-[#FF7F50]/20 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3" /> Premium
+              <Sparkles className="w-3 h-3" /> {t('dashboard.premium', 'Premium')}   {/* ✅ */}
             </span>
           </div>
         </motion.div>
@@ -407,7 +411,9 @@ export default function Dashboard() {
             <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Total balance</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                    {t('dashboard.totalBalance')}   {/* ✅ */}
+                  </p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <p className="text-3xl font-black text-white tracking-tight">
                       {showBalance ? `Rs. ${formatMoney(pkrBalance)}` : '••••••••'}
@@ -420,7 +426,7 @@ export default function Dashboard() {
                     </button>
                   </div>
                   <p className="text-sm text-[#34D399] flex items-center gap-1.5 mt-1">
-                    <TrendingUp className="w-4 h-4" /> ↑ {growth}% <span className="text-white/30 text-xs">vs last month</span>
+                    <TrendingUp className="w-4 h-4" /> ↑ {growth}% <span className="text-white/30 text-xs">{t('dashboard.vsLastMonth', 'vs last month')}</span>
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-[#FF7F50]/10 border border-[#FF7F50]/20 flex items-center justify-center">
@@ -436,7 +442,9 @@ export default function Dashboard() {
           >
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Net Cash Flow</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  {t('dashboard.netCashFlow')}   {/* ✅ */}
+                </p>
                 <p className="text-3xl font-black text-white tracking-tight mt-1.5">
                   Rs. {formatMoney(totalIncome - totalExpense)}
                 </p>
@@ -462,17 +470,23 @@ export default function Dashboard() {
           >
             <div className="flex gap-6">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Income</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  {t('dashboard.income')}   {/* ✅ */}
+                </p>
                 <p className="text-lg font-bold text-[#34D399]">Rs. {formatMoney(totalIncome)}</p>
               </div>
               <div className="w-px bg-white/10" />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Expenses</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                  {t('dashboard.expenses')}   {/* ✅ */}
+                </p>
                 <p className="text-lg font-bold text-[#EF4444]">Rs. {formatMoney(totalExpense)}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">Savings</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
+                {t('dashboard.savings')}   {/* ✅ */}
+              </p>
               <p className="text-lg font-bold text-[#F59E0B]">Rs. {formatMoney(savings)}</p>
             </div>
           </motion.div>
@@ -481,7 +495,7 @@ export default function Dashboard() {
         {/* ─── QUICK ACTIONS ─── */}
         <div>
           <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold mb-4 flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5" /> Quick Actions
+            <Zap className="w-3.5 h-3.5" /> {t('dashboard.quickActions')}   {/* ✅ */}
           </h2>
           <motion.div
             variants={stagger}
@@ -489,10 +503,10 @@ export default function Dashboard() {
             animate="visible"
             className="grid grid-cols-2 sm:grid-cols-4 gap-3"
           >
-            <QuickActionCard icon={Send} label="Transfer" to="/transfer" />
-            <QuickActionCard icon={Plus} label="Add Money" to="/transfer" gradient />
-            <QuickActionCard icon={Minus} label="Withdraw" to="/transfer" color="#EF4444" />
-            <QuickActionCard icon={CreditCard} label="Cards" to="/cards" color="#A78BFA" />
+            <QuickActionCard icon={Send} label={t('nav.transfer')} to="/transfer" />   {/* ✅ */}
+            <QuickActionCard icon={Plus} label={t('dashboard.addMoney')} to="/transfer" gradient />   {/* ✅ */}
+            <QuickActionCard icon={Minus} label={t('dashboard.withdraw')} to="/transfer" color="#EF4444" />   {/* ✅ */}
+            <QuickActionCard icon={CreditCard} label={t('nav.cards')} to="/cards" color="#A78BFA" />   {/* ✅ */}
           </motion.div>
         </div>
 
@@ -503,10 +517,10 @@ export default function Dashboard() {
           animate="visible"
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
-          <MetricCard label="Income" value={`Rs. ${formatMoney(totalIncome)}`} icon={TrendingUp} change="+12.5%" changeType="up" showBalance={showBalance} />
-          <MetricCard label="Expenses" value={`Rs. ${formatMoney(totalExpense)}`} icon={TrendingDown} change="-8.3%" changeType="down" showBalance={showBalance} />
-          <MetricCard label="Savings" value={`Rs. ${formatMoney(savings)}`} icon={Wallet} showBalance={showBalance} />
-          <MetricCard label="Growth" value={`${growth}%`} icon={BarChart3} change="↑ 2.1%" changeType="up" showBalance={true} />
+          <MetricCard label={t('dashboard.income')} value={`Rs. ${formatMoney(totalIncome)}`} icon={TrendingUp} change="+12.5%" changeType="up" showBalance={showBalance} />   {/* ✅ */}
+          <MetricCard label={t('dashboard.expenses')} value={`Rs. ${formatMoney(totalExpense)}`} icon={TrendingDown} change="-8.3%" changeType="down" showBalance={showBalance} />   {/* ✅ */}
+          <MetricCard label={t('dashboard.savings')} value={`Rs. ${formatMoney(savings)}`} icon={Wallet} showBalance={showBalance} />   {/* ✅ */}
+          <MetricCard label={t('dashboard.growth', 'Growth')} value={`${growth}%`} icon={BarChart3} change="↑ 2.1%" changeType="up" showBalance={true} />   {/* ✅ */}
         </motion.div>
 
         {/* ─── CHARTS SECTION ─── */}
@@ -529,14 +543,16 @@ export default function Dashboard() {
               <AlertCircle className="w-5 h-5 text-[#FF7F50]" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">Financial Insight</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">
+                {t('dashboard.financialInsight', 'Financial Insight')}   {/* ✅ */}
+              </p>
               <p className="text-white/70 text-sm mt-0.5">
-                Your spending decreased 12% compared to last month. Potential monthly savings:{' '}
+                {t('dashboard.financialInsightMessage', 'Your spending decreased 12% compared to last month. Potential monthly savings:')}{' '}
                 <span className="text-white font-bold">Rs. 8,500</span>
               </p>
             </div>
             <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium whitespace-nowrap">
-              View Report <ChevronRight className="w-4 h-4" />
+              {t('dashboard.viewReport', 'View Report')} <ChevronRight className="w-4 h-4" />   {/* ✅ */}
             </button>
           </div>
         </motion.div>
@@ -553,7 +569,9 @@ export default function Dashboard() {
             className="bg-[#0D0D12] border border-white/5 rounded-[24px] shadow-2xl p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">Expense Categories</h2>
+              <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">
+                {t('dashboard.expenseCategories')}   {/* ✅ */}
+              </h2>
               <span className="text-xs text-white/40 font-bold">Rs. {formatMoney(totalExpenses)}</span>
             </div>
 
@@ -579,7 +597,9 @@ export default function Dashboard() {
                   </ResponsiveContainer>
                 ) : (
                   <div className="w-full h-full rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
-                    <span className="text-xs text-white/30 text-center px-2">No expenses</span>
+                    <span className="text-xs text-white/30 text-center px-2">
+                      {t('dashboard.noExpensesShort', 'No expenses')}   {/* ✅ */}
+                    </span>
                   </div>
                 )}
               </div>
@@ -587,7 +607,7 @@ export default function Dashboard() {
               <div className="flex-1 w-full space-y-2.5">
                 {displayCategories.length > 0 ? expenseCategoryList : (
                   <p className="text-white/40 text-sm text-center py-4">
-                    No expenses recorded yet. Send money to see chart.
+                    {t('dashboard.noExpenses')}   {/* ✅ */}
                   </p>
                 )}
               </div>
@@ -605,22 +625,24 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
-                <Target className="w-3.5 h-3.5" /> Savings Goals
+                <Target className="w-3.5 h-3.5" /> {t('dashboard.savingsGoals')}   {/* ✅ */}
               </h2>
-              <span className="text-xs text-white/40">Track your progress</span>
+              <span className="text-xs text-white/40">
+                {t('dashboard.trackProgress', 'Track your progress')}   {/* ✅ */}
+              </span>
             </div>
 
             <div className="space-y-5">
               {savingsGoalList.length > 0 ? savingsGoalList : (
                 <p className="text-white/40 text-sm text-center py-6">
-                  No goals yet. Create one to start saving.
+                  {t('dashboard.noGoals', 'No goals yet. Create one to start saving.')}   {/* ✅ */}
                 </p>
               )}
             </div>
 
             <div className="mt-5 pt-4 border-t border-white/5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-white/40">Total Saved</span>
+                <span className="text-white/40">{t('dashboard.totalSaved')}</span>   {/* ✅ */}
                 <span className="text-white font-bold">
                   Rs. {formatMoney(totalSaved)}
                 </span>
@@ -640,16 +662,18 @@ export default function Dashboard() {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5" /> Recent transactions
+              <Calendar className="w-3.5 h-3.5" /> {t('dashboard.recentTransactions')}   {/* ✅ */}
             </h2>
             <Link to="/transactions" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
-              View All <ArrowUpRight size={14} />
+              {t('dashboard.viewAll')} <ArrowUpRight size={14} />   {/* ✅ */}
             </Link>
           </div>
 
           <div className="space-y-2">
             {liveTransactions.length > 0 ? transactionList : (
-              <p className="text-white/40 text-sm text-center py-4">No transactions to show yet.</p>
+              <p className="text-white/40 text-sm text-center py-4">
+                {t('dashboard.noTransactions')}   {/* ✅ */}
+              </p>
             )}
           </div>
         </motion.div>
@@ -668,12 +692,16 @@ export default function Dashboard() {
               <Shield className="w-5 h-5 text-[#FF7F50]" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Secure. Encrypted. Built for you.</p>
-              <p className="text-xs text-white/40">Your data is protected with bank-grade security.</p>
+              <p className="text-sm font-semibold text-white">
+                {t('dashboard.secureEncrypted', 'Secure. Encrypted. Built for you.')}   {/* ✅ */}
+              </p>
+              <p className="text-xs text-white/40">
+                {t('dashboard.dataProtected', 'Your data is protected with bank-grade security.')}   {/* ✅ */}
+              </p>
             </div>
           </div>
           <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium">
-            Learn more <ChevronRight className="w-4 h-4" />
+            {t('dashboard.learnMore', 'Learn more')} <ChevronRight className="w-4 h-4" />   {/* ✅ */}
           </button>
         </motion.div>
 

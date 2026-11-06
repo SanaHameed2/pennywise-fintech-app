@@ -1,9 +1,10 @@
 // src/app/pages/TransferWizard.tsx
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronRight, ChevronLeft, CheckCircle2,
-  Search, UserPlus, AlertCircle, Download // ✅ Download icon add kiya gaya
+  Search, UserPlus, AlertCircle, Download
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../hooks/useAuth';
@@ -19,13 +20,20 @@ interface Beneficiary {
   avatar?: string;
 }
 
-const STEPS = ['Beneficiary', 'Amount', 'Verify PIN', 'Receipt'];
-
 const StepBar = React.memo(({ current }: { current: number }) => {
+  const { t } = useTranslation();
+
+  const steps = [
+    t('transfer.stepBeneficiary'),
+    t('transfer.stepAmount'),
+    t('transfer.stepPin'),
+    t('transfer.stepReceipt'),
+  ];
+
   return (
     <div className="w-full mb-8">
       <div className="flex items-center gap-0">
-        {STEPS.map((label, i) => (
+        {steps.map((label, i) => (
           <div key={i} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
@@ -39,7 +47,7 @@ const StepBar = React.memo(({ current }: { current: number }) => {
                 i <= current ? 'text-[#FF7F50]' : 'text-white/40'
               }`}>{label}</span>
             </div>
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div className={`flex-1 h-0.5 mb-4 mx-1 transition-all duration-500 ${
                 i < current ? 'bg-[#FF7F50]' : 'bg-white/10'
               }`} />
@@ -102,6 +110,7 @@ function Step1({
   loading: boolean;
   onAddBeneficiary: (name: string, iban: string, bank: string) => Promise<Beneficiary>;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Beneficiary | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -132,7 +141,7 @@ function Step1({
 
   const handleAdd = useCallback(async () => {
     if (!newName || !newIban || !newBank) {
-      alert('Please fill all fields');
+      alert(t('transfer.fillAllFields'));
       return;
     }
     setIsAdding(true);
@@ -144,11 +153,11 @@ function Step1({
       setNewBank('');
       setSelected(newBeneficiary);
     } catch (err: any) {
-      alert(err.message || 'Failed to add beneficiary');
+      alert(err.message || t('transfer.failedToAdd'));
     } finally {
       setIsAdding(false);
     }
-  }, [newName, newIban, newBank, onAddBeneficiary]);
+  }, [newName, newIban, newBank, onAddBeneficiary, t]);
 
   const toggleAddForm = useCallback(() => {
     setShowAddForm(prev => !prev);
@@ -166,7 +175,9 @@ function Step1({
           <div className="h-12 bg-white/10 rounded w-full"></div>
           <div className="h-20 bg-white/10 rounded w-full"></div>
         </div>
-        <p className="text-center text-white/40 text-sm">Loading beneficiaries layer...</p>
+        <p className="text-center text-white/40 text-sm">
+          {t('transfer.loadingBeneficiaries', 'Loading beneficiaries layer...')}
+        </p>
       </div>
     );
   }
@@ -175,37 +186,43 @@ function Step1({
     <div className="space-y-5">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold text-white">Select Beneficiary</h2>
-          <p className="text-sm text-white/50 mt-0.5">Search your saved payees</p>
+          <h2 className="text-xl font-semibold text-white">
+            {t('transfer.selectBeneficiary')}
+          </h2>
+          <p className="text-sm text-white/50 mt-0.5">
+            {t('transfer.searchPayees')}
+          </p>
         </div>
         <button
           onClick={toggleAddForm}
           className="flex items-center gap-1 text-[#FF7F50] text-sm hover:text-[#ff8f66] transition"
         >
-          <UserPlus className="w-4 h-4" /> Add New
+          <UserPlus className="w-4 h-4" /> {t('transfer.addNew')}
         </button>
       </div>
 
       {showAddForm && (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
-          <h3 className="text-white font-medium text-sm">Add New Beneficiary</h3>
+          <h3 className="text-white font-medium text-sm">
+            {t('transfer.addBeneficiary')}
+          </h3>
           <input
             type="text"
-            placeholder="Full Name"
+            placeholder={t('transfer.fullName')}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7F50]/30 focus:border-[#FF7F50]"
           />
           <input
             type="text"
-            placeholder="IBAN (24 characters, e.g. PK36SCBL0000001123456702)"
+            placeholder={t('transfer.ibanHint', 'IBAN (24 characters, e.g. PK36SCBL0000001123456702)')}
             value={newIban}
             onChange={(e) => setNewIban(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7F50]/30 focus:border-[#FF7F50]"
           />
           <input
             type="text"
-            placeholder="Bank Name"
+            placeholder={t('transfer.bankName')}
             value={newBank}
             onChange={(e) => setNewBank(e.target.value)}
             className="w-full px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7F50]/30 focus:border-[#FF7F50]"
@@ -215,7 +232,7 @@ function Step1({
             disabled={isAdding}
             className="w-full bg-[#FF7F50] hover:bg-[#ff8f66] disabled:opacity-50 text-black py-2 rounded-lg text-sm font-semibold transition"
           >
-            {isAdding ? 'Adding...' : 'Add Beneficiary'}
+            {isAdding ? t('transfer.adding', 'Adding...') : t('transfer.addBeneficiaryBtn', 'Add Beneficiary')}
           </button>
         </div>
       )}
@@ -224,7 +241,7 @@ function Step1({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
         <input
           type="text"
-          placeholder="Search by name or bank…"
+          placeholder={t('transfer.searchPlaceholder', 'Search by name or bank…')}
           value={query}
           onChange={handleQueryChange}
           className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white placeholder:text-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7F50]/30 focus:border-[#FF7F50] transition"
@@ -234,7 +251,7 @@ function Step1({
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
         {filtered.length === 0 ? (
           <p className="text-center text-sm text-white/40 py-4">
-            No beneficiaries found. Click "Add New" to create one.
+            {t('transfer.noBeneficiaries', 'No beneficiaries found. Click "Add New" to create one.')}
           </p>
         ) : (
           filtered.map((b) => (
@@ -253,7 +270,7 @@ function Step1({
         onClick={handleContinue}
         className="w-full flex items-center justify-center gap-2 bg-[#FF7F50] hover:bg-[#ff8f66] disabled:opacity-40 disabled:cursor-not-allowed text-black py-3 rounded-xl font-semibold transition-all text-sm"
       >
-        Continue <ChevronRight className="w-4 h-4" />
+        {t('common.continue')} <ChevronRight className="w-4 h-4" />
       </button>
     </div>
   );
@@ -270,24 +287,27 @@ function Step2({
   onNext: (amount: string, note: string) => void;
   onBack: () => void;
 }) {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
 
   const handleContinue = useCallback(() => {
     const num = safeParseMoney(amount);
-    
+
     if (!amount || isNaN(num) || num <= 0) {
-      setError('Please enter a valid amount greater than 0.');
+      setError(t('transfer.validAmount', 'Please enter a valid amount greater than 0.'));
       return;
     }
     if (num > availableBalance) {
-      setError(`Insufficient balance. Your available balance is Rs. ${formatMoney(availableBalance)}.`);
+      setError(
+        t('transfer.insufficientBalance', { balance: formatMoney(availableBalance) })
+      );
       return;
     }
     setError('');
     onNext(amount, note);
-  }, [amount, note, availableBalance, onNext]);
+  }, [amount, note, availableBalance, onNext, t]);
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
@@ -301,9 +321,11 @@ function Step2({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-xl font-semibold text-white">Enter Amount</h2>
+        <h2 className="text-xl font-semibold text-white">
+          {t('transfer.enterAmount')}
+        </h2>
         <p className="text-sm text-white/50 mt-0.5">
-          Sending to <span className="font-semibold text-white">{beneficiary.name}</span> · {beneficiary.bank}
+          {t('transfer.sendingTo')} <span className="font-semibold text-white">{beneficiary.name}</span> · {beneficiary.bank}
         </p>
       </div>
 
@@ -330,17 +352,23 @@ function Step2({
 
       <div className="bg-white/5 rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-white/50">Available balance</span>
+          <span className="text-white/50">
+            {t('transfer.availableBalance')}
+          </span>
           <span className="font-semibold text-white">Rs. {formatMoney(availableBalance)}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-white/50">Transfer Fee</span>
-          <span className="font-semibold text-green-400">Free</span>
+          <span className="text-white/50">
+            {t('transfer.transferFee')}
+          </span>
+          <span className="font-semibold text-green-400">
+            {t('transfer.free')}
+          </span>
         </div>
       </div>
 
       <textarea
-        placeholder="Add a note (optional)…"
+        placeholder={t('transfer.addNote')}
         value={note}
         onChange={handleNoteChange}
         rows={2}
@@ -348,11 +376,17 @@ function Step2({
       />
 
       <div className="flex gap-3">
-        <button onClick={onBack} className="flex items-center gap-1 px-5 py-3 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5 transition-colors">
-          <ChevronLeft className="w-4 h-4" /> Back
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1 px-5 py-3 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5 transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" /> {t('common.back')}
         </button>
-        <button onClick={handleContinue} className="flex-1 flex items-center justify-center gap-2 bg-[#FF7F50] hover:bg-[#ff8f66] text-black py-3 rounded-xl font-semibold text-sm transition-all">
-          Review Transfer <ChevronRight className="w-4 h-4" />
+        <button
+          onClick={handleContinue}
+          className="flex-1 flex items-center justify-center gap-2 bg-[#FF7F50] hover:bg-[#ff8f66] text-black py-3 rounded-xl font-semibold text-sm transition-all"
+        >
+          {t('transfer.reviewTransfer')} <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
@@ -374,6 +408,7 @@ function Step3({
   isProcessing?: boolean;
   onRequestOtp: () => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [pin, setPin] = useState(['', '', '', '', '', '']);
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
@@ -399,15 +434,24 @@ function Step3({
 
   const handleConfirm = useCallback(() => {
     if (isLargeTransfer) {
-      if (!otp || otp.length < 6) { setError('Enter 6-digit OTP.'); return; }
+      if (!otp || otp.length < 6) {
+        setError(t('transfer.enterOtp6', 'Enter 6-digit OTP.'));
+        return;
+      }
       onConfirm(otp);
     } else {
       const full = pin.join('');
-      if (full.length < 6) { setError('Please enter all 6 digits.'); return; }
-      if (full !== '123456') { setError('Incorrect PIN.'); return; }
+      if (full.length < 6) {
+        setError(t('transfer.enterAllDigits', 'Please enter all 6 digits.'));
+        return;
+      }
+      if (full !== '123456') {
+        setError(t('transfer.incorrectPin', 'Incorrect PIN.'));
+        return;
+      }
       onConfirm();
     }
-  }, [pin, otp, isLargeTransfer, onConfirm]);
+  }, [pin, otp, isLargeTransfer, onConfirm, t]);
 
   const handleRequestOtp = async () => {
     try {
@@ -415,7 +459,7 @@ function Step3({
       await onRequestOtp();
       setOtpSent(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to send OTP');
+      setError(err.message || t('transfer.failedOtp', 'Failed to send OTP'));
     }
   };
 
@@ -425,19 +469,19 @@ function Step3({
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-white">
-          {isLargeTransfer ? 'Step-up OTP Verification' : 'Secure PIN Verification'}
+          {isLargeTransfer ? t('transfer.stepUpOtp') : t('transfer.securePin')}
         </h2>
         <p className="text-sm text-white/50 mt-0.5">
-          {isLargeTransfer 
-            ? 'Large transfer detected. Please verify with OTP.' 
-            : 'Authorise this transfer with your 6-digit cryptographic PIN'}
+          {isLargeTransfer
+            ? t('transfer.largeTransfer')
+            : t('transfer.enterPin')}
         </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
         {[
-          ['To', beneficiary.name],
-          ['Amount', `Rs. ${formattedAmount}`],
+          [t('transfer.to', 'To'), beneficiary.name],
+          [t('common.amount'), `Rs. ${formattedAmount}`],
         ].map(([k, v]) => (
           <div key={k} className="flex justify-between text-sm">
             <span className="text-white/50">{k}</span>
@@ -449,13 +493,16 @@ function Step3({
       {isLargeTransfer ? (
         <div className="space-y-4">
           {!otpSent ? (
-             <button onClick={handleRequestOtp} className="w-full bg-[#FF7F50] text-black py-3 rounded-xl font-semibold hover:bg-[#ff8f66]">
-               Send OTP (Simulated)
-             </button>
+            <button
+              onClick={handleRequestOtp}
+              className="w-full bg-[#FF7F50] text-black py-3 rounded-xl font-semibold hover:bg-[#ff8f66]"
+            >
+              {t('transfer.sendOtp')}
+            </button>
           ) : (
             <input
               type="text"
-              placeholder="Enter 6-digit OTP"
+              placeholder={t('transfer.enterOtp')}
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
               className="w-full text-center text-xl tracking-widest py-3 rounded-xl border-2 bg-white/5 border-white/20 text-white focus:border-[#FF7F50] focus:outline-none"
@@ -482,18 +529,25 @@ function Step3({
       {error && <p className="text-center text-sm text-red-400">{error}</p>}
 
       <div className="flex gap-3">
-        <button onClick={onBack} disabled={isProcessing} className="flex items-center gap-1 px-5 py-3 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5">
-          <ChevronLeft className="w-4 h-4" /> Back
+        <button
+          onClick={onBack}
+          disabled={isProcessing}
+          className="flex items-center gap-1 px-5 py-3 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5"
+        >
+          <ChevronLeft className="w-4 h-4" /> {t('common.back')}
         </button>
-        <button onClick={handleConfirm} disabled={isProcessing} className="flex-1 bg-[#FF7F50] text-black py-3 rounded-xl font-semibold text-sm hover:bg-[#ff8f66]">
-          {isProcessing ? 'Processing…' : 'Confirm Transfer'}
+        <button
+          onClick={handleConfirm}
+          disabled={isProcessing}
+          className="flex-1 bg-[#FF7F50] text-black py-3 rounded-xl font-semibold text-sm hover:bg-[#ff8f66]"
+        >
+          {isProcessing ? t('transfer.processing') : t('transfer.confirmTransfer')}
         </button>
       </div>
     </div>
   );
 }
 
-// ✅ Step 4 with Receipt Download
 function Step4({
   beneficiary,
   amount,
@@ -505,30 +559,30 @@ function Step4({
   note?: string;
   onReset: () => void;
 }) {
+  const { t } = useTranslation();
   const [txId] = useState(() => `PW-${Date.now().toString(36).toUpperCase()}`);
   const formattedAmount = useMemo(() => formatMoney(amount), [amount]);
   const dateStr = useMemo(() => new Date().toLocaleString(), []);
 
-  // ✅ Receipt Download Function
   const downloadReceipt = () => {
     const receiptContent = `
 =========================================
-           PENNYWISE RECEIPT
+           ${t('transfer.receiptTitle', 'PENNYWISE RECEIPT')}
 =========================================
-Date:           ${dateStr}
-Transaction ID: ${txId}
+${t('transfer.date', 'Date')}:           ${dateStr}
+${t('transfer.transactionId')}: ${txId}
 -----------------------------------------
-Beneficiary:    ${beneficiary.name}
-Bank:           ${beneficiary.bank}
-IBAN:           ${beneficiary.iban}
-Amount Sent:    Rs. ${formattedAmount}
-Status:         Completed
+${t('transfer.stepBeneficiary')}:    ${beneficiary.name}
+${t('transfer.bankName')}:           ${beneficiary.bank}
+${t('transfer.iban')}:           ${beneficiary.iban}
+${t('transfer.amountSent')}:    Rs. ${formattedAmount}
+${t('common.status')}:         ${t('common.completed')}
 =========================================
-   Thank you for using Pennywise!
-   Secure. Encrypted. Built for you.
+   ${t('transfer.thankYou', 'Thank you for using Pennywise!')}
+   ${t('transfer.secureEncryptedShort', 'Secure. Encrypted. Built for you.')}
 =========================================
     `;
-    
+
     const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -547,38 +601,42 @@ Status:         Completed
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold text-white">Transfer Successful!</h2>
-        <p className="text-sm text-white/50 mt-0.5">Your funds are on their way</p>
+        <h2 className="text-xl font-semibold text-white">
+          {t('transfer.transferSuccessful')}
+        </h2>
+        <p className="text-sm text-white/50 mt-0.5">
+          {t('transfer.fundsOnWay')}
+        </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3">
         {[
-          ['Date', dateStr],
-          ['Transaction ID', txId],
-          ['Beneficiary', beneficiary.name],
-          ['Amount Sent', `Rs. ${formattedAmount}`],
-          ['Status', 'Completed'],
+          [t('transfer.date', 'Date'), dateStr],
+          [t('transfer.transactionId'), txId],
+          [t('transfer.stepBeneficiary'), beneficiary.name],
+          [t('transfer.amountSent'), `Rs. ${formattedAmount}`],
+          [t('common.status'), t('common.completed')],
         ].map(([k, v]) => (
           <div key={k} className="flex justify-between text-sm border-b border-white/10 pb-2 last:border-0 last:pb-0">
             <span className="text-white/50">{k}</span>
-            <span className={`font-semibold text-right ${k === 'Status' ? 'text-green-400' : 'text-white'}`}>{v}</span>
+            <span className={`font-semibold text-right ${k === t('common.status') ? 'text-green-400' : 'text-white'}`}>{v}</span>
           </div>
         ))}
       </div>
 
       <div className="space-y-3">
-        <button 
-          onClick={downloadReceipt} 
+        <button
+          onClick={downloadReceipt}
           className="w-full flex items-center justify-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 py-3 rounded-xl font-semibold transition-all text-sm"
         >
-          <Download className="w-4 h-4" /> Download Receipt
+          <Download className="w-4 h-4" /> {t('transfer.downloadReceipt')}
         </button>
-        
-        <button 
-          onClick={onReset} 
+
+        <button
+          onClick={onReset}
           className="w-full bg-[#FF7F50] hover:bg-[#ff8f66] text-black py-3 rounded-xl font-semibold transition-all text-sm"
         >
-          New Transfer
+          {t('transfer.newTransfer')}
         </button>
       </div>
     </div>
@@ -587,6 +645,7 @@ Status:         Completed
 
 export default function TransferWizard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const userId = user?.id;
 
   const [step, setStep] = useState(0);
@@ -620,7 +679,7 @@ export default function TransferWizard() {
 
     void loadBalance();
     return () => { cancelled = true; };
-  }, [userId, step]); 
+  }, [userId, step]);
 
   const reset = useCallback(() => {
     setStep(0);
@@ -650,11 +709,11 @@ export default function TransferWizard() {
 
       const rpcData = data as { success: boolean; new_balance: number };
       setLiveBalance(Number(rpcData.new_balance));
-      
+
       setStep(3);
     } catch (err) {
       console.error("Transfer Error:", err);
-      setStep(3); 
+      setStep(3);
     } finally {
       setIsProcessing(false);
     }
@@ -734,7 +793,9 @@ export default function TransferWizard() {
           >
             <div className="flex items-center gap-2 mb-6">
               <span className="text-xl text-[#FF7F50] font-bold">Rs.</span>
-              <span className="text-sm font-semibold text-white/50 uppercase tracking-widest">Fund Transfer (PKR)</span>
+              <span className="text-sm font-semibold text-white/50 uppercase tracking-widest">
+                {t('transfer.title')}
+              </span>
             </div>
 
             <StepBar current={step} />

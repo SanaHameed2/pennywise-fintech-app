@@ -2,13 +2,14 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
-import { Toaster } from 'sonner'; // ✅ Import Toaster from Sonner
+import { Toaster } from 'sonner';
 import { router } from './app/router';
 import { AuthProvider } from './contexts/AuthContext';
 import { DarkModeProvider } from './app/contexts/DarkModeContext';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './providers/ToastProvider';
+import './lib/i18n';   // ✅ ADDED: i18n init (must be before App render)
 import './index.css';
 
 // ✅ Loading component for Suspense
@@ -36,7 +37,7 @@ ReactDOM.createRoot(rootElement).render(
               <RouterProvider router={router} />
             </Suspense>
             <ToastProvider />
-            <Toaster position="top-right" richColors /> {/* ✅ Added Sonner Toaster */}
+            <Toaster position="top-right" richColors />
           </AuthProvider>
         </DarkModeProvider>
       </QueryProvider>
