@@ -21,6 +21,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import { formatMoney } from '../../utils/money';
+import { formatDate } from '../../utils/date'; // ✅ ADDED DATE FORMATTER
 
 const DashboardCharts = lazy(() => import('./DashboardCharts'));
 
@@ -139,9 +140,8 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
             {transaction.description || transaction.category || t('common.transaction', 'Transaction')}
           </p>
           <p className="text-xs text-white/30">
-            {transaction.created_at ? new Date(transaction.created_at).toLocaleDateString('en-US', {
-              month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            }) : t('common.recent', 'Recent')}
+            {/* ✅ FIXED: Using formatDate */}
+            {transaction.created_at ? formatDate(transaction.created_at) : t('common.recent', 'Recent')}
           </p>
         </div>
       </div>
@@ -168,9 +168,10 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-sm font-medium text-white/80">{goal.name}</span>
         <span className="text-xs font-bold text-white/60">
-          Rs. {current.toLocaleString()}
+          {/* ✅ FIXED: Using formatMoney */}
+          Rs. {formatMoney(current)}
           <span className="text-white/30"> / </span>
-          Rs. {target.toLocaleString()}
+          Rs. {formatMoney(target)}
         </span>
       </div>
       <div className="flex items-center gap-3 mb-2">
@@ -210,7 +211,8 @@ const ExpenseCategoryItem = React.memo(({ category }: { category: any }) => {
       <div className="flex-1">
         <div className="flex justify-between text-xs">
           <span className="text-white/60">{category.name}</span>
-          <span className="text-white/80 font-medium">Rs. {category.amount.toLocaleString()}</span>
+          {/* ✅ FIXED: Using formatMoney */}
+          <span className="text-white/80 font-medium">Rs. {formatMoney(category.amount)}</span>
         </div>
         <div className="w-full h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
           <div
@@ -343,7 +345,6 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <button className="relative p-2 rounded-xl hover:bg-white/5 transition-colors">
               <Bell className="w-5 h-5 text-white/60 hover:text-white/90 transition" />
-              {/* ✅ RTL Fix: right-1.5 to end-1.5 */}
               <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-[#FF7F50] rounded-full ring-2 ring-[#070707] animate-pulse" />
             </button>
             <button
@@ -380,7 +381,6 @@ export default function Dashboard() {
               {new Date().getHours() < 12 ? t('dashboard.greetingMorning') :
                new Date().getHours() < 18 ? t('dashboard.greetingAfternoon') :
                t('dashboard.greetingEvening')}, {displayName}
-              {/* ✅ RTL Fix: ml-2 to ms-2 */}
               <span className="inline-block ms-2 animate-pulse">👋</span>
             </h1>
             <p className="text-sm text-white/40 flex items-center gap-2 mt-0.5">
@@ -409,7 +409,6 @@ export default function Dashboard() {
             variants={fadeIn}
             className="bg-gradient-to-br from-[#0D0D12] to-[#1A1A24] border border-white/5 rounded-[24px] p-6 shadow-2xl relative overflow-hidden group"
           >
-            {/* ✅ RTL Fix: -right-20 to -end-20 */}
             <div className="absolute -top-20 -end-20 w-40 h-40 bg-[#FF7F50]/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10">
               <div className="flex items-start justify-between">
@@ -486,7 +485,6 @@ export default function Dashboard() {
                 <p className="text-lg font-bold text-[#EF4444]">Rs. {formatMoney(totalExpense)}</p>
               </div>
             </div>
-            {/* ✅ RTL Fix: text-right to text-end */}
             <div className="text-end">
               <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
                 {t('dashboard.savings')}
@@ -541,7 +539,6 @@ export default function Dashboard() {
           transition={{ duration: 0.5 }}
           className="bg-gradient-to-br from-[#FF7F50]/5 via-[#A78BFA]/5 to-transparent border border-[#FF7F50]/10 rounded-[24px] shadow-2xl p-6 relative overflow-hidden group"
         >
-          {/* ✅ RTL Fix: right-0 to end-0 */}
           <div className="absolute top-0 end-0 w-64 h-64 bg-[#FF7F50]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FF7F50]/10 border border-[#FF7F50]/20 flex items-center justify-center flex-shrink-0">
@@ -558,7 +555,6 @@ export default function Dashboard() {
             </div>
             <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium whitespace-nowrap">
               {t('dashboard.viewReport', 'View Report')} 
-              {/* ✅ RTL Fix: rtl:rotate-180 */}
               <ChevronRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           </div>
@@ -673,7 +669,6 @@ export default function Dashboard() {
             </h2>
             <Link to="/transactions" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
               {t('dashboard.viewAll')} 
-              {/* ✅ RTL Fix: rtl:-scale-x-100 */}
               <ArrowUpRight size={14} className="rtl:-scale-x-100" />
             </Link>
           </div>
@@ -711,7 +706,6 @@ export default function Dashboard() {
           </div>
           <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium">
             {t('dashboard.learnMore', 'Learn more')} 
-            {/* ✅ RTL Fix: rtl:rotate-180 */}
             <ChevronRight className="w-4 h-4 rtl:rotate-180" />
           </button>
         </motion.div>

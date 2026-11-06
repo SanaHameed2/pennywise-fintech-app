@@ -1,6 +1,7 @@
 // src/app/pages/Cards.tsx
 import React, { useState, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   CreditCard, Lock, Unlock, Plus, Trash2,
   ShoppingBag, Coffee, Plane, Gamepad2, Utensils, AlertCircle,
@@ -9,8 +10,8 @@ import {
   Shield, Wallet,
   ChevronRight
 } from 'lucide-react';
+import { formatMoney } from '../../utils/money';
 
-/* ─── Types ─── */
 interface VirtualCard {
   id: number;
   label: string;
@@ -27,7 +28,6 @@ interface VirtualCard {
   icon: React.ElementType;
 }
 
-// ✅ NEW: typed card preset (replaces `preset: any`)
 interface CardPreset {
   label: string;
   icon: React.ElementType;
@@ -35,15 +35,13 @@ interface CardPreset {
   bgGradient: string;
 }
 
-/* ─── Mock virtual cards ─── */
 const INITIAL_CARDS: VirtualCard[] = [
-  { id: 1, label: 'Shopping', number: '4242 •••• •••• 1234', expiry: '09/28', cvv: '412', balance: 500, limit: 500, spent: 213.45, locked: false, color: 'from-violet-600 to-indigo-500', bgGradient: 'bg-gradient-to-br from-violet-600 to-indigo-500', category: 'Shopping', icon: ShoppingBag },
-  { id: 2, label: 'Travel', number: '5353 •••• •••• 5678', expiry: '12/27', cvv: '937', balance: 2000, limit: 2000, spent: 1540.20, locked: false, color: 'from-sky-500 to-cyan-400', bgGradient: 'bg-gradient-to-br from-sky-500 to-cyan-400', category: 'Travel', icon: Plane },
-  { id: 3, label: 'Coffee & Food', number: '4111 •••• •••• 9012', expiry: '06/26', cvv: '258', balance: 150, limit: 150, spent: 88.75, locked: true, color: 'from-amber-500 to-orange-400', bgGradient: 'bg-gradient-to-br from-amber-500 to-orange-400', category: 'Food', icon: Coffee },
-  { id: 4, label: 'Entertainment', number: '5200 •••• •••• 3456', expiry: '03/29', cvv: '741', balance: 300, limit: 300, spent: 45.99, locked: false, color: 'from-rose-500 to-pink-400', bgGradient: 'bg-gradient-to-br from-rose-500 to-pink-400', category: 'Entertainment', icon: Gamepad2 },
+  { id: 1, label: 'shopping', number: '4242 •••• •••• 1234', expiry: '09/28', cvv: '412', balance: 500, limit: 500, spent: 213.45, locked: false, color: 'from-violet-600 to-indigo-500', bgGradient: 'bg-gradient-to-br from-violet-600 to-indigo-500', category: 'shopping', icon: ShoppingBag },
+  { id: 2, label: 'travel', number: '5353 •••• •••• 5678', expiry: '12/27', cvv: '937', balance: 2000, limit: 2000, spent: 1540.20, locked: false, color: 'from-sky-500 to-cyan-400', bgGradient: 'bg-gradient-to-br from-sky-500 to-cyan-400', category: 'travel', icon: Plane },
+  { id: 3, label: 'dining', number: '4111 •••• •••• 9012', expiry: '06/26', cvv: '258', balance: 150, limit: 150, spent: 88.75, locked: true, color: 'from-amber-500 to-orange-400', bgGradient: 'bg-gradient-to-br from-amber-500 to-orange-400', category: 'dining', icon: Coffee },
+  { id: 4, label: 'gaming', number: '5200 •••• •••• 3456', expiry: '03/29', cvv: '741', balance: 300, limit: 300, spent: 45.99, locked: false, color: 'from-rose-500 to-pink-400', bgGradient: 'bg-gradient-to-br from-rose-500 to-pink-400', category: 'gaming', icon: Gamepad2 },
 ];
 
-/* ─── Recent Transactions ─── */
 const RECENT_TRANSACTIONS = [
   { id: 1, merchant: 'Amazon.in', date: 'Jun 21, 2025', amount: -42.99, time: '10:42 AM', category: 'Shopping' },
   { id: 2, merchant: 'Flipkart', date: 'Jun 25, 2025', amount: -129.50, time: '04:15 PM', category: 'Shopping' },
@@ -52,17 +50,15 @@ const RECENT_TRANSACTIONS = [
   { id: 5, merchant: 'Refund from Amazon', date: 'Jun 20, 2025', amount: 42.99, time: '02:33 PM', category: 'Refund' },
 ];
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: SpendBar
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SpendBar = React.memo(({ spent, limit, locked }: { spent: number; limit: number; locked: boolean }) => {
+  const { t } = useTranslation();
   const pct = Math.min((spent / limit) * 100, 100);
   const danger = pct > 85;
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs text-gray-400">
-        <span>Spent: ${spent.toFixed(2)}</span>
-        <span>Limit: ${limit.toFixed(2)}</span>
+        <span>{t('cards.spent')}: Rs. {formatMoney(spent)}</span>
+        <span>{t('cards.limit')}: Rs. {formatMoney(limit)}</span>
       </div>
       <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
         <motion.div
@@ -78,13 +74,10 @@ const SpendBar = React.memo(({ spent, limit, locked }: { spent: number; limit: n
     </div>
   );
 });
-
 SpendBar.displayName = 'SpendBar';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: CardFront
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const CardFront = React.memo(({ card, onFlip }: { card: VirtualCard; onFlip: () => void }) => {
+  const { t } = useTranslation();
   const Icon = card.icon;
   return (
     <div
@@ -95,7 +88,7 @@ const CardFront = React.memo(({ card, onFlip }: { card: VirtualCard; onFlip: () 
         <div className="absolute inset-0 rounded-2xl bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-10">
           <div className="flex flex-col items-center gap-1">
             <Lock className="w-8 h-8 text-white/90" />
-            <span className="text-xs font-semibold text-white/90">Card Locked</span>
+            <span className="text-xs font-semibold text-white/90">{t('cards.cardLocked')}</span>
           </div>
         </div>
       )}
@@ -104,34 +97,30 @@ const CardFront = React.memo(({ card, onFlip }: { card: VirtualCard; onFlip: () 
           <Icon className="w-4 h-4" />
         </div>
         <span className="text-xs font-semibold uppercase tracking-widest opacity-80 bg-white/20 px-2 py-0.5 rounded-full">
-          {card.label}
+          {t(`cards.${card.label}`)}
         </span>
       </div>
       <div>
-        <p className="text-sm font-mono tracking-widest opacity-90 mb-0.5">{card.number}</p>
+        <p className="text-sm font-mono tracking-widest opacity-90 mb-0.5" dir="ltr">{card.number}</p>
         <div className="flex justify-between items-end">
           <div>
-            <p className="text-[10px] opacity-60 uppercase">Expires</p>
-            <p className="text-sm font-semibold">{card.expiry}</p>
+            <p className="text-[10px] opacity-60 uppercase">{t('cards.expires')}</p>
+            <p className="text-sm font-semibold" dir="ltr">{card.expiry}</p>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] opacity-60 uppercase">Balance</p>
-            <p className="text-base font-bold">${(card.limit - card.spent).toFixed(2)}</p>
+          <div className="text-end">
+            <p className="text-[10px] opacity-60 uppercase">{t('cards.balance')}</p>
+            <p className="text-base font-bold" dir="ltr">Rs. {formatMoney(card.limit - card.spent)}</p>
           </div>
         </div>
       </div>
-      <div className="absolute bottom-4 right-4 opacity-20">
+      <div className="absolute bottom-4 end-4 opacity-20">
         <CreditCard className="w-10 h-10" />
       </div>
     </div>
   );
 });
-
 CardFront.displayName = 'CardFront';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: CardBack
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const CardBack = React.memo(({
   card, showCvv, onFlip, setShowCvv
 }: {
@@ -140,6 +129,7 @@ const CardBack = React.memo(({
   onFlip: () => void;
   setShowCvv: (val: boolean) => void;
 }) => {
+  const { t } = useTranslation();
   const handleToggleCvv = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setShowCvv(!showCvv);
@@ -154,8 +144,8 @@ const CardBack = React.memo(({
       <div className="h-10 bg-black/30 mt-6 w-full" />
       <div className="px-5 pb-5 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500 uppercase tracking-widest">CVV</span>
-          <span className="font-mono font-bold text-white bg-white/10 px-3 py-1 rounded-lg text-sm tracking-widest">
+          <span className="text-xs text-gray-500 uppercase tracking-widest">{t('cards.cvv')}</span>
+          <span className="font-mono font-bold text-white bg-white/10 px-3 py-1 rounded-lg text-sm tracking-widest" dir="ltr">
             {showCvv ? card.cvv : '•••'}
           </span>
         </div>
@@ -165,20 +155,16 @@ const CardBack = React.memo(({
             onClick={handleToggleCvv}
             className="text-[10px] text-gray-500 hover:text-white transition-colors"
           >
-            {showCvv ? 'Hide CVV' : 'Show CVV'}
+            {showCvv ? t('cards.hideCvv') : t('cards.showCvv')}
           </button>
-          <p className="text-[10px] text-gray-500">Tap to flip back</p>
+          <p className="text-[10px] text-gray-500">{t('cards.tapFlip')}</p>
         </div>
       </div>
     </div>
   );
 });
-
 CardBack.displayName = 'CardBack';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: FlipCard
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const FlipCard = React.memo(({
   card, onToggleLock, onDelete
 }: {
@@ -186,6 +172,7 @@ const FlipCard = React.memo(({
   onToggleLock: (id: number) => void;
   onDelete: (id: number) => void;
 }) => {
+  const { t } = useTranslation();
   const [flipped, setFlipped] = useState(false);
   const [showCvv, setShowCvv] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -221,13 +208,12 @@ const FlipCard = React.memo(({
         </motion.div>
       </div>
 
-      {/* Card controls */}
       <div className="bg-[#0d0d12] rounded-xl border border-white/[0.06] p-3 space-y-3">
         <SpendBar spent={card.spent} limit={card.limit} locked={card.locked} />
 
         {card.spent / card.limit > 0.85 && !card.locked && (
           <p className="flex items-center gap-1.5 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-2 py-1.5">
-            <AlertCircle className="w-3.5 h-3.5" /> Approaching spend limit
+            <AlertCircle className="w-3.5 h-3.5" /> {t('cards.approachingLimit')}
           </p>
         )}
 
@@ -241,7 +227,7 @@ const FlipCard = React.memo(({
                 : 'bg-[#FF7F50]/10 text-[#FF7F50] border border-[#FF7F50]/20 hover:bg-[#FF7F50]/20'
             }`}
           >
-            {card.locked ? <><Unlock className="w-3.5 h-3.5" /> Unlock</> : <><Lock className="w-3.5 h-3.5" /> Lock</>}
+            {card.locked ? <><Unlock className="w-3.5 h-3.5" /> {t('cards.unlock')}</> : <><Lock className="w-3.5 h-3.5" /> {t('cards.lock')}</>}
           </button>
           <button
             type="button"
@@ -253,17 +239,16 @@ const FlipCard = React.memo(({
         </div>
       </div>
 
-      {/* Delete confirmation */}
       <AnimatePresence>
         {confirmDelete && (
           <motion.div
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
             className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 space-y-2"
           >
-            <p className="text-xs font-semibold text-red-400">Permanently delete this card?</p>
+            <p className="text-xs font-semibold text-red-400">{t('cards.deleteConfirm')}</p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setConfirmDelete(false)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs font-semibold text-white hover:bg-white/5">Cancel</button>
-              <button type="button" onClick={handleDelete} className="flex-1 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600">Delete</button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="flex-1 py-1.5 rounded-lg border border-white/10 text-xs font-semibold text-white hover:bg-white/5">{t('cards.cancel')}</button>
+              <button type="button" onClick={handleDelete} className="flex-1 py-1.5 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600">{t('cards.delete')}</button>
             </div>
           </motion.div>
         )}
@@ -271,12 +256,8 @@ const FlipCard = React.memo(({
     </div>
   );
 });
-
 FlipCard.displayName = 'FlipCard';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: StatCard
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const StatCard = React.memo(({ label, value, icon: Icon }: { label: string; value: string; icon: React.ElementType }) => {
   return (
     <div className="bg-[#0d0d12] rounded-xl border border-white/[0.06] p-4 shadow-xl">
@@ -288,12 +269,8 @@ const StatCard = React.memo(({ label, value, icon: Icon }: { label: string; valu
     </div>
   );
 });
-
 StatCard.displayName = 'StatCard';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: TransactionItem
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const TransactionItem = React.memo(({ transaction }: { transaction: typeof RECENT_TRANSACTIONS[0] }) => {
   const isPositive = transaction.amount > 0;
   return (
@@ -302,7 +279,7 @@ const TransactionItem = React.memo(({ transaction }: { transaction: typeof RECEN
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
           isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#FF7F50]/10 text-[#FF7F50]'
         }`}>
-          {isPositive ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
+          {isPositive ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />}
         </div>
         <div>
           <p className="text-sm font-medium text-white">{transaction.merchant}</p>
@@ -310,18 +287,15 @@ const TransactionItem = React.memo(({ transaction }: { transaction: typeof RECEN
         </div>
       </div>
       <span className={`text-sm font-bold ${isPositive ? 'text-emerald-400' : 'text-white'}`}>
-        {isPositive ? '+' : ''}{transaction.amount.toFixed(2)}
+        {isPositive ? '+' : ''} Rs. {formatMoney(Math.abs(transaction.amount))}
       </span>
     </div>
   );
 });
-
 TransactionItem.displayName = 'TransactionItem';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ React.memo: BudgetItem
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const BudgetItem = React.memo(({ card }: { card: VirtualCard }) => {
+  const { t } = useTranslation();
   const Icon = card.icon;
   const pct = Math.min((card.spent / card.limit) * 100, 100);
   return (
@@ -331,10 +305,10 @@ const BudgetItem = React.memo(({ card }: { card: VirtualCard }) => {
           <div className={`w-6 h-6 rounded-lg ${card.bgGradient} flex items-center justify-center`}>
             <Icon className="w-3 h-3 text-white" />
           </div>
-          <span className="text-xs font-medium text-white">{card.label}</span>
+          <span className="text-xs font-medium text-white">{t(`cards.${card.label}`)}</span>
           {card.locked && <Lock className="w-3 h-3 text-gray-500" />}
         </div>
-        <span className="text-xs text-gray-400">${card.spent.toFixed(2)} / ${card.limit.toFixed(2)}</span>
+        <span className="text-xs text-gray-400">Rs. {formatMoney(card.spent)} / Rs. {formatMoney(card.limit)}</span>
       </div>
       <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
         <div
@@ -347,17 +321,13 @@ const BudgetItem = React.memo(({ card }: { card: VirtualCard }) => {
     </div>
   );
 });
-
 BudgetItem.displayName = 'BudgetItem';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ CardPresetButton with useCallback — typed `preset`
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const CARD_PRESETS: CardPreset[] = [
-  { label: 'Shopping', icon: ShoppingBag, color: 'from-violet-600 to-indigo-500', bgGradient: 'bg-gradient-to-br from-violet-600 to-indigo-500' },
-  { label: 'Dining', icon: Utensils, color: 'from-emerald-500 to-teal-400', bgGradient: 'bg-gradient-to-br from-emerald-500 to-teal-400' },
-  { label: 'Travel', icon: Plane, color: 'from-sky-500 to-cyan-400', bgGradient: 'bg-gradient-to-br from-sky-500 to-cyan-400' },
-  { label: 'Gaming', icon: Gamepad2, color: 'from-purple-600 to-pink-500', bgGradient: 'bg-gradient-to-br from-purple-600 to-pink-500' },
+  { label: 'shopping', icon: ShoppingBag, color: 'from-violet-600 to-indigo-500', bgGradient: 'bg-gradient-to-br from-violet-600 to-indigo-500' },
+  { label: 'dining', icon: Utensils, color: 'from-emerald-500 to-teal-400', bgGradient: 'bg-gradient-to-br from-emerald-500 to-teal-400' },
+  { label: 'travel', icon: Plane, color: 'from-sky-500 to-cyan-400', bgGradient: 'bg-gradient-to-br from-sky-500 to-cyan-400' },
+  { label: 'gaming', icon: Gamepad2, color: 'from-purple-600 to-pink-500', bgGradient: 'bg-gradient-to-br from-purple-600 to-pink-500' },
 ];
 
 const CardPresetButton = React.memo(({
@@ -366,11 +336,12 @@ const CardPresetButton = React.memo(({
   selected,
   onSelect
 }: {
-  preset: CardPreset;      // ✅ was `any`
+  preset: CardPreset;
   index: number;
   selected: boolean;
   onSelect: (index: number) => void;
 }) => {
+  const { t } = useTranslation();
   const Icon = preset.icon;
   return (
     <button
@@ -383,25 +354,22 @@ const CardPresetButton = React.memo(({
       <div className={`w-8 h-8 rounded-lg ${preset.bgGradient} flex items-center justify-center`}>
         <Icon className="w-4 h-4 text-white" />
       </div>
-      <span className="text-[9px] text-gray-400">{preset.label}</span>
+      <span className="text-[9px] text-gray-400">{t(`cards.${preset.label}`)}</span>
     </button>
   );
 });
-
 CardPresetButton.displayName = 'CardPresetButton';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ NewCardModal with useCallback
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function NewCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: VirtualCard) => void }) {
+  const { t } = useTranslation();
   const [label, setLabel] = useState('');
   const [limit, setLimit] = useState('');
   const [preset, setPreset] = useState(0);
   const [error, setError] = useState('');
 
   const handleCreate = useCallback(() => {
-    if (!label.trim()) { setError('Card label is required.'); return; }
-    if (!limit || isNaN(Number(limit)) || Number(limit) <= 0) { setError('Enter a valid spending limit.'); return; }
+    if (!label.trim()) { setError(t('cards.cardLabelError')); return; }
+    if (!limit || isNaN(Number(limit)) || Number(limit) <= 0) { setError(t('cards.limitError')); return; }
     const p = CARD_PRESETS[preset];
     const Icon = p.icon;
     const newCard: VirtualCard = {
@@ -421,7 +389,7 @@ function NewCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: V
     };
     onAdd(newCard);
     onClose();
-  }, [label, limit, preset, onAdd, onClose]);
+  }, [label, limit, preset, onAdd, onClose, t]);
 
   const handlePresetSelect = useCallback((index: number) => {
     setPreset(index);
@@ -433,10 +401,10 @@ function NewCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: V
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         className="bg-[#0d0d12] border border-white/[0.06] rounded-2xl shadow-2xl p-6 max-w-sm w-full space-y-5 text-white"
       >
-        <h3 className="text-lg font-semibold text-white">Create Virtual Card</h3>
+        <h3 className="text-lg font-semibold text-white">{t('cards.createCardTitle')}</h3>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Card Label</label>
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('cards.cardLabel')}</label>
           <input
             type="text"
             value={label}
@@ -449,7 +417,7 @@ function NewCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: V
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Spending Limit ($)</label>
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('cards.spendingLimit')}</label>
           <input
             type="number"
             value={limit}
@@ -458,6 +426,7 @@ function NewCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: V
             className={`w-full px-3 py-2.5 rounded-xl border bg-white/5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#FF7F50]/20 transition ${
               error && (!limit || Number(limit) <= 0) ? 'border-red-500 focus:ring-red-500/20' : 'border-white/10 focus:border-[#FF7F50]'
             }`}
+            dir="ltr"
           />
         </div>
 
@@ -483,18 +452,16 @@ function NewCardModal({ onClose, onAdd }: { onClose: () => void; onAdd: (card: V
         )}
 
         <div className="flex gap-3">
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5 transition-colors">Cancel</button>
-          <button type="button" onClick={handleCreate} className="flex-1 py-2.5 rounded-xl bg-[#FF7F50] text-black text-sm font-semibold transition-colors hover:bg-[#ff8f66]">Create Card</button>
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 text-sm font-semibold text-white hover:bg-white/5 transition-colors">{t('cards.cancel')}</button>
+          <button type="button" onClick={handleCreate} className="flex-1 py-2.5 rounded-xl bg-[#FF7F50] text-black text-sm font-semibold transition-colors hover:bg-[#ff8f66]">{t('cards.createCard')}</button>
         </div>
       </motion.div>
     </div>
   );
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Main Cards Page
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default function Cards() {
+  const { t } = useTranslation();
   const [cards, setCards] = useState<VirtualCard[]>(INITIAL_CARDS);
   const [showNewCard, setShowNewCard] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -535,12 +502,12 @@ export default function Cards() {
 
   const statCards = useMemo(() => {
     return [
-      { label: 'Total Cards', value: String(cards.length), icon: CreditCard },
-      { label: 'Total Limit', value: `$${totals.totalLimit.toFixed(2)}`, icon: DollarSign },
-      { label: 'Total Spent', value: `$${totals.totalSpent.toFixed(2)}`, icon: TrendingUp },
-      { label: 'Remaining', value: `$${totals.remaining.toFixed(2)}`, icon: Wallet },
+      { label: t('cards.totalCards'), value: String(cards.length), icon: CreditCard },
+      { label: t('cards.totalLimit'), value: `Rs. ${formatMoney(totals.totalLimit)}`, icon: DollarSign },
+      { label: t('cards.totalSpent'), value: `Rs. ${formatMoney(totals.totalSpent)}`, icon: TrendingUp },
+      { label: t('cards.remaining'), value: `Rs. ${formatMoney(totals.remaining)}`, icon: Wallet },
     ];
-  }, [cards.length, totals]);
+  }, [cards.length, totals, t]);
 
   const transactionList = useMemo(() => {
     return RECENT_TRANSACTIONS.map((tx) => (
@@ -556,28 +523,25 @@ export default function Cards() {
 
   return (
     <div className="min-h-screen bg-[#050507] text-white overflow-x-hidden relative selection:bg-[#FF7F50]/20 antialiased font-sans">
-      {/* Background Glows */}
       <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#FF7F50]/10 to-transparent blur-[120px] rounded-full pointer-events-none z-0" />
       <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-[#FF7F50]/4 blur-[160px] rounded-full pointer-events-none z-0" />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 relative z-10 pt-28 pb-12">
 
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Your Cards</h1>
-            <p className="text-gray-400 mt-1">Manage your virtual cards, set limits, lock, or delete anytime.</p>
+            <h1 className="text-3xl font-bold text-white">{t('cards.title')}</h1>
+            <p className="text-gray-400 mt-1">{t('cards.subtitle')}</p>
           </div>
           <button
             type="button"
             onClick={() => setShowNewCard(true)}
             className="flex items-center gap-2 bg-[#FF7F50] text-black px-5 py-2.5 rounded-xl font-bold text-xs uppercase font-mono tracking-wider transition-all shadow-[0_4px_20px_rgba(255,127,80,0.2)] hover:bg-[#ff8f66]"
           >
-            <Plus className="w-4 h-4" /> New Virtual Card
+            <Plus className="w-4 h-4" /> {t('cards.newCard')}
           </button>
         </motion.div>
 
-        {/* Stats Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -589,10 +553,9 @@ export default function Cards() {
           ))}
         </motion.div>
 
-        {/* Cards Scroll */}
         <div>
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4 font-mono">
-            Virtual Cards ({cards.length})
+            {t('cards.virtualCards')} ({cards.length})
           </h2>
           <div
             ref={scrollRef}
@@ -603,7 +566,6 @@ export default function Cards() {
               {cardList}
             </AnimatePresence>
 
-            {/* Add card placeholder */}
             <div className="flex-shrink-0 w-72 snap-start">
               <button
                 type="button"
@@ -611,15 +573,13 @@ export default function Cards() {
                 className="w-full h-44 rounded-xl border-2 border-dashed border-white/10 hover:border-[#FF7F50] hover:bg-[#FF7F50]/5 transition-all flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-[#FF7F50]"
               >
                 <Plus className="w-8 h-8" />
-                <span className="text-sm font-semibold">Add Virtual Card</span>
+                <span className="text-sm font-semibold">{t('cards.addVirtualCard')}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Recent Transactions & Budget Overview Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-          {/* Recent Transactions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -627,9 +587,9 @@ export default function Cards() {
             className="lg:col-span-2 bg-[#0d0d12] rounded-xl border border-white/[0.06] p-6"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-white">Recent transactions</h3>
+              <h3 className="text-sm font-semibold text-white">{t('cards.recentTx')}</h3>
               <button className="text-xs text-gray-500 hover:text-[#FF7F50] transition-colors flex items-center gap-1">
-                View All <ChevronRight className="w-3.5 h-3.5" />
+                {t('cards.viewAll')} <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
               </button>
             </div>
             <div className="space-y-3">
@@ -637,36 +597,33 @@ export default function Cards() {
             </div>
           </motion.div>
 
-          {/* Budget Overview */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="bg-[#0d0d12] rounded-xl border border-white/[0.06] p-6"
           >
-            <h3 className="text-sm font-semibold text-white mb-4">Budget Overview</h3>
+            <h3 className="text-sm font-semibold text-white mb-4">{t('cards.budgetOverview')}</h3>
             <div className="space-y-4">
               {budgetItems}
             </div>
           </motion.div>
         </div>
 
-        {/* Security Badge */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-500 font-mono"
+          className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-500 font-mono text-center"
         >
           <Shield className="w-4 h-4 text-[#FF7F50]" />
-          <span>Secure. Encrypted. Built for you.</span>
-          <span className="text-gray-600">•</span>
-          <span>Your card details are encrypted and protected with bank-grade security.</span>
+          <span>{t('cards.securityMsg')}</span>
+          <span className="text-gray-600 hidden sm:inline">•</span>
+          <span className="hidden sm:inline">{t('cards.securitySub')}</span>
         </motion.div>
 
       </div>
 
-      {/* New Card Modal */}
       <AnimatePresence>
         {showNewCard && (
           <NewCardModal

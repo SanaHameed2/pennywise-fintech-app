@@ -1,6 +1,7 @@
 // src/app/pages/TransactionHistory.tsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Calendar, Search, Loader2, AlertCircle } from 'lucide-react';
 import { useTransactions, PAGE_SIZE, FilterType, DateRange } from '../../hooks/useTransactions';
 import { TransactionRow } from '../../components/transactions/TransactionRow';
@@ -10,6 +11,7 @@ import { TransactionExport } from '../../components/transactions/TransactionExpo
 import Footer from '../components/Footer';
 
 export default function TransactionHistory() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
@@ -22,7 +24,6 @@ export default function TransactionHistory() {
     dateRange,
   });
 
-  // ✅ Deferred setState — rule-safe
   useEffect(() => {
     let cancelled = false;
     const reset = async () => {
@@ -50,11 +51,11 @@ export default function TransactionHistory() {
         >
           <div>
             <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Calendar className="w-7 h-7 text-[#FF7F50]" /> Transaction History
+              <Calendar className="w-7 h-7 text-[#FF7F50]" /> {t('transactions.title')}
             </h1>
             <p className="text-sm text-white/50 mt-1">
-              Showing {totalCount} transaction{totalCount !== 1 ? 's' : ''}{' '}
-              {hasActiveFilters && '(Filtered)'}
+              {t('transactions.showing', { count: totalCount })}{' '}
+              {hasActiveFilters && t('transactions.filtered')}
             </p>
           </div>
           <TransactionExport
@@ -78,18 +79,18 @@ export default function TransactionHistory() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 text-white/40">
               <Loader2 className="w-8 h-8 animate-spin mb-4 text-[#FF7F50]" />
-              <p>Loading transactions...</p>
+              <p>{t('transactions.loading')}</p>
             </div>
           ) : isError ? (
             <div className="flex flex-col items-center justify-center py-20 text-red-400">
               <AlertCircle className="w-12 h-12 mb-4 opacity-50" />
-              <p>Failed to load transactions.</p>
+              <p>{t('transactions.error')}</p>
               <p className="text-xs mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
             </div>
           ) : transactions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-white/40">
               <Search className="w-12 h-12 mb-4 opacity-50" />
-              <p>No transactions found matching your filters.</p>
+              <p>{t('transactions.noResults')}</p>
             </div>
           ) : (
             <div className="divide-y divide-white/[0.06]">
