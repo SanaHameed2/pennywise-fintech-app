@@ -1,167 +1,161 @@
-// src/components/SavingsGoalModal.tsx
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { X, Plus, Minus, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { formatMoney, safeParseMoney } from '../utils/money';
+import { useTranslation } from 'react-i18next';
+import { X, Plus, Minus, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+// ✅ FIXED PATH BELOW
+import { formatMoney, safeParseMoney } from '../../utils/money'; 
 
-type Action = 'contribute' | 'withdraw';
-
-interface SavingsGoal {
-  id: string;
-  name: string;
-  current_amount: number;
-  target_amount: number;
-}
-
-interface Props {
-  goal: SavingsGoal;
+interface SavingsGoalModalProps {
+  goal: any;
   walletBalance: number;
   onClose: () => void;
   onSuccess: () => void;
   contributeFn: (goalId: string, amount: number) => Promise<any>;
   withdrawFn: (goalId: string, amount: number) => Promise<any>;
-  initialMode?: Action;   // ✅ new — passed from Dashboard's Contribute/Withdraw buttons
 }
 
-export function SavingsGoalModal({
+export default function SavingsGoalModal({
   goal,
   walletBalance,
   onClose,
   onSuccess,
   contributeFn,
   withdrawFn,
-  initialMode = 'contribute',
-}: Props) {
-  const [action, setAction] = useState<Action>(initialMode);
+}: SavingsGoalModalProps) {
+  const { t } = useTranslation();
   const [amount, setAmount] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [action, setAction] = useState<'contribute' | 'withdraw'>('contribute');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  // ✅ Coerce DB numerics (Supabase returns NUMERIC as string) to real numbers
-  const currentAmount = Number(goal.current_amount ?? 0);
-  const targetAmount = Number(goal.target_amount ?? 0);
-  const wallet = Number(walletBalance ?? 0);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const numAmount = safeParseMoney(amount) || Number(amount);
 
-  const maxAvailable = action === 'contribute' ? wallet : currentAmount;
-  const goalFull = currentAmount >= targetAmount;
+    if (!numAmount || numAmount <= 0) {
+      setError(t('savings.invalidAmount', 'Please enter a valid amount.'));
+      return;
+    }
 
-  const handleSubmit = async () => {
+    if (action === 'contribute' && numAmount > walletBalance) {
+      setError(t('savings.insufficientFunds', 'Insufficient wallet balance.'));
+      return;
+    }
+
+    if (action === 'withdraw') {
+      const currentAmount = Number(goal.current_amount ?? goal.current ?? 0);
+      if (numAmount > currentAmount) {
+        setError(t('savings.exceedsGoalAmount', 'Amount exceeds goal balance.'));
+        return;
+      }
+    }
+
+    setIsProcessing(true);
     setError('');
-    const num = safeParseMoney(amount);
 
-    if (!amount || isNaN(num) || num <= 0) {
-      setError('Enter a valid amount greater than 0.');
-      return;
-    }
-    if (num > maxAvailable) {
-      setError(`Amount exceeds available Rs. ${formatMoney(maxAvailable)}.`);
-      return;
-    }
-
-    setLoading(true);
     try {
       if (action === 'contribute') {
-        await contributeFn(goal.id, num);
+        await contributeFn(goal.id, numAmount);
       } else {
-        await withdrawFn(goal.id, num);
+        await withdrawFn(goal.id, numAmount);
       }
-      setSuccess(action === 'contribute' ? 'Contribution successful!' : 'Withdrawal successful!');
-      setTimeout(() => {
-        onSuccess();
-        // onClose is called inside Dashboard's onSuccess → setSelectedGoal(null),
-        // so we don't strictly need it here. Kept for safety.
-        onClose();
-      }, 1200);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Transaction failed');
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || t('savings.transactionFailed', 'Transaction failed. Please try again.'));
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-[#0d0d12] border border-white/[0.06] rounded-2xl p-6 w-full max-w-sm space-y-5 relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-sm bg-[#0D0D12] border border-white/10 rounded-2xl p-6 shadow-2xl overflow-hidden"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/5 text-white/50"
+          className="absolute top-4 right-4 p-1.5 text-white/40 hover:text-white bg-white/5 rounded-lg transition-colors rtl:left-4 rtl:right-auto"
         >
           <X className="w-4 h-4" />
         </button>
 
-        <div>
-          <h3 className="text-lg font-semibold text-white">{goal.name}</h3>
-          <p className="text-xs text-white/40 mt-1">
-            Saved: Rs. {formatMoney(currentAmount)} / Rs. {formatMoney(targetAmount)}
-          </p>
-        </div>
+        <h2 className="text-xl font-bold text-white mb-1">
+          {goal.name}
+        </h2>
+        <p className="text-xs text-white/50 mb-6">
+          {t('savings.currentBalance', 'Current Balance')}: Rs. {formatMoney(Number(goal.current_amount ?? goal.current ?? 0))}
+        </p>
 
-        {/* Action toggle */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 rounded-xl">
+        <div className="flex bg-white/5 p-1 rounded-xl mb-6">
           <button
-            onClick={() => { setAction('contribute'); setAmount(''); setError(''); }}
-            disabled={goalFull}
-            className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed ${
-              action === 'contribute' ? 'bg-emerald-500 text-white' : 'text-white/60 hover:text-white'
+            onClick={() => { setAction('contribute'); setError(''); }}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              action === 'contribute' ? 'bg-[#FF7F50] text-black shadow-md' : 'text-white/60 hover:text-white'
             }`}
           >
-            <Plus className="w-4 h-4" /> Contribute
+            <Plus className="w-3.5 h-3.5" /> {t('dashboard.contribute', 'Contribute')}
           </button>
           <button
-            onClick={() => { setAction('withdraw'); setAmount(''); setError(''); }}
-            disabled={currentAmount <= 0}
-            className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed ${
-              action === 'withdraw' ? 'bg-orange-500 text-white' : 'text-white/60 hover:text-white'
+            onClick={() => { setAction('withdraw'); setError(''); }}
+            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+              action === 'withdraw' ? 'bg-[#FF7F50] text-black shadow-md' : 'text-white/60 hover:text-white'
             }`}
           >
-            <Minus className="w-4 h-4" /> Withdraw
+            <Minus className="w-3.5 h-3.5" /> {t('dashboard.withdrawGoal', 'Withdraw')}
           </button>
         </div>
 
-        {/* Amount input */}
-        <div>
-          <label className="text-xs text-white/50 mb-1.5 block">
-            Amount (Available: Rs. {formatMoney(maxAvailable)})
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">Rs.</span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-white/40 mb-1.5 block">
+              {t('common.amount', 'Amount')} (Rs.)
+            </label>
             <input
               type="number"
               value={amount}
-              onChange={(e) => { setAmount(e.target.value); setError(''); }}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              min="0"
-              step="0.01"
-              className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white focus:outline-none focus:border-[#FF7F50] text-lg font-semibold"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF7F50] focus:ring-1 focus:ring-[#FF7F50] transition-all text-lg font-semibold"
             />
+            {action === 'contribute' && (
+              <p className="text-[10px] text-white/40 mt-1.5">
+                {t('transfer.availableBalance', 'Available Balance')}: Rs. {formatMoney(walletBalance)}
+              </p>
+            )}
           </div>
-        </div>
 
-        {error && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" /> {error}
-          </div>
-        )}
-        {success && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> {success}
-          </div>
-        )}
+          {error && (
+            <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 p-2.5 rounded-lg border border-red-500/20">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
 
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-[#FF7F50] hover:bg-[#ff8f66] disabled:opacity-50 text-black font-bold py-3 rounded-xl transition"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-          {loading ? 'Processing...' : action === 'contribute' ? 'Contribute' : 'Withdraw'}
-        </button>
+          <button
+            type="submit"
+            disabled={isProcessing || !amount}
+            className="w-full py-3 rounded-xl bg-[#FF7F50] hover:bg-[#ff8f66] text-black font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> {t('transfer.processing', 'Processing…')}
+              </>
+            ) : (
+              t('common.confirm', 'Confirm')
+            )}
+          </button>
+        </form>
       </motion.div>
     </div>
   );
