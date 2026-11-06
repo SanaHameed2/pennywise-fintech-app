@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, Minus, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-// ✅ FIXED PATH BELOW
+// ✅ CheckCircle2 removed from imports
+import { X, Plus, Minus, AlertCircle, Loader2 } from 'lucide-react';
 import { formatMoney, safeParseMoney } from '../../utils/money'; 
 
 interface SavingsGoalModalProps {
