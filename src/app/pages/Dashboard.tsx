@@ -5,13 +5,14 @@ import { useState, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   TrendingUp, TrendingDown, ArrowUpRight,
-  Eye, EyeOff, Bell, Settings, Send, Plus, Minus, CreditCard,
+  Eye, EyeOff, Settings, Send, Plus, Minus, CreditCard,
   Wallet, BarChart3, Calendar, AlertCircle,
   Target, Shield, ChevronRight, Zap, Sparkles
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import SavingsGoalModal from '../components/SavingsGoalModal';
+import { NotificationPanel } from '../components/NotificationPanel'; // ✅ ADDED
 import {
   ResponsiveContainer,
   PieChart,
@@ -21,7 +22,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import { useSupabaseData } from '../../hooks/useSupabaseData';
 import { formatMoney } from '../../utils/money';
-import { formatDate } from '../../utils/date'; // ✅ ADDED DATE FORMATTER
+import { formatDate } from '../../utils/date';
 
 const DashboardCharts = lazy(() => import('./DashboardCharts'));
 
@@ -140,7 +141,6 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
             {transaction.description || transaction.category || t('common.transaction', 'Transaction')}
           </p>
           <p className="text-xs text-white/30">
-            {/* ✅ FIXED: Using formatDate */}
             {transaction.created_at ? formatDate(transaction.created_at) : t('common.recent', 'Recent')}
           </p>
         </div>
@@ -168,7 +168,6 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-sm font-medium text-white/80">{goal.name}</span>
         <span className="text-xs font-bold text-white/60">
-          {/* ✅ FIXED: Using formatMoney */}
           Rs. {formatMoney(current)}
           <span className="text-white/30"> / </span>
           Rs. {formatMoney(target)}
@@ -211,7 +210,6 @@ const ExpenseCategoryItem = React.memo(({ category }: { category: any }) => {
       <div className="flex-1">
         <div className="flex justify-between text-xs">
           <span className="text-white/60">{category.name}</span>
-          {/* ✅ FIXED: Using formatMoney */}
           <span className="text-white/80 font-medium">Rs. {formatMoney(category.amount)}</span>
         </div>
         <div className="w-full h-1.5 rounded-full bg-white/5 mt-1 overflow-hidden">
@@ -343,10 +341,9 @@ export default function Dashboard() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-xl hover:bg-white/5 transition-colors">
-              <Bell className="w-5 h-5 text-white/60 hover:text-white/90 transition" />
-              <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-[#FF7F50] rounded-full ring-2 ring-[#070707] animate-pulse" />
-            </button>
+            {/* ✅ REPLACED STATIC BELL WITH REAL NOTIFICATION PANEL */}
+            <NotificationPanel />
+            
             <button
               onClick={() => handleNavigate('/settings')}
               className="p-2 rounded-xl hover:bg-white/5 transition-colors"

@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { LanguageToggle } from '../../components/LanguageToggle';
+import { NotificationPanel } from './NotificationPanel'; // ✅ ADDED
 import {
   Settings,
   LogOut,
@@ -162,8 +163,10 @@ const Navbar = memo(() => {
             })}
 
             {user ? (
-              /* ✅ RTL Fix: ml-4 pl-4 border-l changed to ms-4 ps-4 border-s */
               <div className="flex items-center gap-4 ms-4 ps-4 border-s border-white/10">
+                {/* ✅ NOTIFICATION BELL FOR DESKTOP */}
+                <NotificationPanel />
+                
                 <LanguageToggle />
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#FF7F50]/20 flex items-center justify-center">
@@ -187,7 +190,6 @@ const Navbar = memo(() => {
                 </button>
               </div>
             ) : (
-              /* ✅ RTL Fix: ml-4 pl-4 border-l changed to ms-4 ps-4 border-s */
               <div className="flex items-center gap-3 ms-4 ps-4 border-s border-white/10">
                 <LanguageToggle />
                 <Link
@@ -206,17 +208,22 @@ const Navbar = memo(() => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMobileMenu}
-            className="md:hidden p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all"
-          >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {/* Mobile Right Side (Notification + Hamburger) */}
+          <div className="flex md:hidden items-center gap-2">
+            {/* ✅ NOTIFICATION BELL FOR MOBILE TOP BAR */}
+            {user && <NotificationPanel />}
+            
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/5">
           <div className="px-4 py-4 space-y-2">

@@ -195,6 +195,12 @@
     "error": "Failed to load transactions.",
     "noResults": "No transactions found matching your filters."
   },
+  "notifications": {
+    "title": "Notifications",
+    "markAll": "Mark all read",
+    "empty": "No notifications yet.",
+    "loading": "Loading notifications..."
+  },
   "language": {
     "english": "English",
     "urdu": "اردو"
