@@ -7,6 +7,7 @@ export default [
   {
     ignores: [
       "dist/**",
+      "dev-dist/**",    // ✅ ADDED: PWA generated files ko ignore karne ke liye
       "node_modules/**",
       "coverage/**",
       "*.config.js",
@@ -52,7 +53,7 @@ export default [
         }
       ],
 
-      // ✅ Allow 'any' types (silences remaining 18 warnings)
+      // ✅ Allow 'any' types 
       "@typescript-eslint/no-explicit-any": "off",
 
       // Handled by TypeScript compiler
