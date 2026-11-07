@@ -44,9 +44,9 @@ describe('Signup', () => {
     await waitFor(() => {
       expect(screen.getByText('Create your account')).toBeInTheDocument();
     });
-    expect(screen.getByPlaceholderText('Your full name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('you@email.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Create a strong password')).toBeInTheDocument();
+    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
   it('displays error message on failed signup', async () => {
@@ -67,18 +67,17 @@ describe('Signup', () => {
       expect(screen.getByText('Create your account')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText('Your full name'), {
+    fireEvent.change(screen.getByLabelText(/full name/i), {
       target: { value: 'Test User' },
     });
-    fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'existing@email.com' },
     });
-    // ✅ Fixed: Removed extra '!'
-    fireEvent.change(screen.getByPlaceholderText('Create a strong password'), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'Password123!' },
     });
 
-    fireEvent.click(screen.getByText('Create Account'));
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Email already registered')).toBeInTheDocument();
@@ -100,17 +99,17 @@ describe('Signup', () => {
       expect(screen.getByText('Create your account')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText('Your full name'), {
+    fireEvent.change(screen.getByLabelText(/full name/i), {
       target: { value: 'Test User' },
     });
-    fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'test@email.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Create a strong password'), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'Password123!' },
     });
 
-    fireEvent.click(screen.getByText('Create Account'));
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();

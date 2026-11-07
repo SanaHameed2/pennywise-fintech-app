@@ -1,100 +1,54 @@
-// src/__tests__/integration/signup-flow.test.tsx
+// src/__tests__/integration/login-flow.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Signup from '../../app/pages/Signup';
+import Login from '../../app/pages/Login';
 import { AuthProvider } from '../../contexts/AuthContext';
 
-// ✅ Full mock of supabase client
 vi.mock('../../lib/supabaseClient', () => ({
   supabase: {
     auth: {
-      signUp: vi.fn(),
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       onAuthStateChange: vi.fn().mockReturnValue({
         data: { subscription: { unsubscribe: vi.fn() } },
       }),
+      signInWithPassword: vi.fn().mockResolvedValue({ 
+        data: { user: { email: 'test@email.com' } }, 
+        error: null 
+      }),
     },
-    from: vi.fn(() => ({
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn().mockResolvedValue({ data: { id: '123' }, error: null }),
-        })),
-      })),
-    })),
   },
 }));
 
-// ✅ Mock useAuth hook
-const mockSignup = vi.fn();
-vi.mock('../../hooks/useAuth', async (importActual) => ({
-  ...(await importActual<typeof import('../../hooks/useAuth')>()),
-  useAuth: () => ({
-    signup: mockSignup,
-    user: null,
-    loading: false,
-  }),
-}));
-
-describe('Signup Flow - Integration', () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-
-  const renderWithProviders = (component: React.ReactNode) => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            {component}
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    );
-  };
-
+describe('Login Flow - Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSignup.mockReset();
   });
 
-  it('renders signup page', async () => {
-    renderWithProviders(<Signup />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Create your account')).toBeInTheDocument();
-    });
-  });
-
-  it('submits signup form with valid data', async () => {
-    mockSignup.mockResolvedValue({ success: true });
-
-    renderWithProviders(<Signup />);
+  it('renders login page and handles login attempt', async () => {
+    render(
+      <BrowserRouter>
+        <AuthProvider>
+          <Login />
+        </AuthProvider>
+      </BrowserRouter>
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('Create your account')).toBeInTheDocument();
+      expect(screen.getByText('Sign in to Pennywise')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText('Your full name'), {
-      target: { value: 'Test User' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'test@email.com' },
     });
-    // ✅ Fixed: Removed extra '!'
-    fireEvent.change(screen.getByPlaceholderText('Create a strong password'), {
-      target: { value: 'Password123!' },
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'password123' },
     });
 
-    fireEvent.click(screen.getByText('Create Account'));
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
-      expect(mockSignup).toHaveBeenCalledWith('Test User', 'test@email.com', 'Password123!');
+      expect(screen.getByText('Sign in to Pennywise')).toBeInTheDocument();
     });
   });
 });

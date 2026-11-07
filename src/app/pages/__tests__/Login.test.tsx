@@ -5,7 +5,6 @@ import { BrowserRouter } from 'react-router-dom';
 import Login from '../Login';
 import { AuthProvider } from '../../../contexts/AuthContext';
 
-// Mock useAuth
 const mockLogin = vi.fn();
 vi.mock('../../../hooks/useAuth', async (importActual) => ({
   ...(await importActual<typeof import('../../../hooks/useAuth')>()),
@@ -16,7 +15,6 @@ vi.mock('../../../hooks/useAuth', async (importActual) => ({
   }),
 }));
 
-// Mock Supabase
 vi.mock('../../../lib/supabaseClient', () => ({
   supabase: {
     auth: {
@@ -46,8 +44,8 @@ describe('Login', () => {
     await waitFor(() => {
       expect(screen.getByText('Sign in to Pennywise')).toBeInTheDocument();
     });
-    expect(screen.getByPlaceholderText('you@email.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
+    expect(screen.getByLabelText(/email address/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
   it('displays error message on failed login', async () => {
@@ -68,14 +66,14 @@ describe('Login', () => {
       expect(screen.getByText('Sign in to Pennywise')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'test@email.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'wrongpassword' },
     });
 
-    fireEvent.click(screen.getByText('Sign In'));
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Invalid email or password')).toBeInTheDocument();
@@ -97,14 +95,14 @@ describe('Login', () => {
       expect(screen.getByText('Sign in to Pennywise')).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText('you@email.com'), {
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'test@email.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
+    fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'password' },
     });
 
-    fireEvent.click(screen.getByText('Sign In'));
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
