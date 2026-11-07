@@ -23,7 +23,6 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
-        // ✅ Temporary placeholder icons taake Chrome khush ho jaye
         icons: [
           {
             src: 'https://placehold.co/192x192/FF7F50/white/png?text=P',
@@ -67,6 +66,36 @@ export default defineConfig({
       }
     })
   ],
+  
+  // ✅ CODE SPLITTING SECTION
+  build: {
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            return 'vendor-libs'; // Baqi saari libraries
+          }
+        }
+      }
+    }
+  },
+
   test: {
     environment: 'jsdom',
     globals: true,

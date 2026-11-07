@@ -9,7 +9,7 @@ import { DarkModeProvider } from './app/contexts/DarkModeContext';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './providers/ToastProvider';
-import './lib/i18n';   // ✅ ADDED: i18n init (must be before App render)
+import './lib/i18n';   // ✅ i18n init (must be before App render)
 import './index.css';
 
 // ✅ Loading component for Suspense
@@ -17,7 +17,9 @@ const LoadingSpinner = () => (
   <div className="min-h-screen bg-[#070707] flex items-center justify-center">
     <div className="text-center">
       <div className="w-12 h-12 border-4 border-[#FF7F50] border-t-transparent rounded-full animate-spin mx-auto" />
-      <p className="text-white/50 mt-4 text-sm font-mono">Loading...</p>
+      <p className="text-white/50 mt-4 text-sm font-mono animate-pulse">
+        Loading your workspace...
+      </p>
     </div>
   </div>
 );
@@ -33,9 +35,11 @@ ReactDOM.createRoot(rootElement).render(
       <QueryProvider>
         <DarkModeProvider>
           <AuthProvider>
+            {/* ✅ Suspense wraps the Router, so lazy-loaded pages show the spinner */}
             <Suspense fallback={<LoadingSpinner />}>
               <RouterProvider router={router} />
             </Suspense>
+            
             <ToastProvider />
             <Toaster position="top-right" richColors />
           </AuthProvider>
