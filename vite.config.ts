@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'offline.html'],
+      includeAssets: ['favicon.svg', 'robots.txt', 'offline.html'],
       devOptions: {
         enabled: true,
         type: 'module',
@@ -67,33 +67,9 @@ export default defineConfig({
     })
   ],
   
-  // ✅ CODE SPLITTING SECTION
+  // ✅ FIX: Removed manualChunks to prevent circular dependency errors
   build: {
-    chunkSizeWarningLimit: 800,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'vendor-charts';
-            }
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
-            }
-            if (id.includes('framer-motion')) {
-              return 'vendor-motion';
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            return 'vendor-libs'; // Baqi saari libraries
-          }
-        }
-      }
-    }
+    chunkSizeWarningLimit: 1000,
   },
 
   test: {
