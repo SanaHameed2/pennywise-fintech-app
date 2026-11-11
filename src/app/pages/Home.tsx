@@ -25,7 +25,7 @@ const staggerContainer: Variants = {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const FeatureItem = React.memo(({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
   <div className="flex items-center gap-3 text-gray-300 text-sm">
-    <Icon className="w-4 h-4 text-[#FF7F50]" />
+    <Icon className="w-4 h-4 text-[#FF7F50]" aria-hidden="true" />
     <span>{title}</span>
   </div>
 ));
@@ -46,7 +46,7 @@ const ToolkitCard = React.memo(({ item }: { item: { icon: React.ElementType; tit
     <motion.div variants={fadeInUp} className="border border-white/[0.06] bg-[#0d0d12] rounded-2xl p-5 sm:p-6 flex-1 flex flex-col justify-between">
       <div className="flex justify-between items-center">
         <span className="text-[9px] font-mono text-[#FF7F50] font-bold">// {item.title.toUpperCase().replace(' ', '_')}</span>
-        <Icon className="w-4 h-4 text-[#FF7F50]" />
+        <Icon className="w-4 h-4 text-[#FF7F50]" aria-hidden="true" />
       </div>
       <div className="mt-4">
         <h4 className="text-sm font-bold uppercase font-mono text-white">{item.title}</h4>
@@ -65,7 +65,7 @@ const ReviewCard = React.memo(({ review }: { review: { text: string; author: str
         <span className="text-xs font-bold font-mono text-white/80 block">{review.author}</span>
         <span className="text-[9px] font-mono text-gray-500 block mt-0.5">{review.role}</span>
       </div>
-      <span className="text-[#FF7F50] text-[9px] tracking-widest">★★★★★</span>
+      <span className="text-[#FF7F50] text-[9px] tracking-widest" aria-label="5 stars">★★★★★</span>
     </div>
   </motion.div>
 ));
@@ -122,9 +122,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#050507] text-white overflow-x-hidden relative selection:bg-[#FF7F50]/20 antialiased font-sans">
       
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#FF7F50]/10 to-transparent blur-[120px] rounded-full pointer-events-none z-0" />
-      <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-[#FF7F50]/4 blur-[160px] rounded-full pointer-events-none z-0" />
-      <div className="absolute top-[60%] left-[-10%] w-[600px] h-[600px] bg-[#FF7F50]/3 blur-[160px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#FF7F50]/10 to-transparent blur-[120px] rounded-full pointer-events-none z-0" aria-hidden="true" />
+      <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-[#FF7F50]/4 blur-[160px] rounded-full pointer-events-none z-0" aria-hidden="true" />
+      <div className="absolute top-[60%] left-[-10%] w-[600px] h-[600px] bg-[#FF7F50]/3 blur-[160px] rounded-full pointer-events-none z-0" aria-hidden="true" />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 relative z-10 pt-20">
         
@@ -133,7 +133,7 @@ export default function Home() {
           <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-6 text-left space-y-6">
               <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#FF7F50]/20 bg-[#FF7F50]/5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FF7F50] animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF7F50] animate-pulse" aria-hidden="true" />
                 <span className="text-[10px] font-mono tracking-widest uppercase text-[#FF7F50] font-bold">Join 95,000+ people</span>
               </motion.div>
               <motion.h1 variants={fadeInUp} className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.1]">
@@ -143,8 +143,9 @@ export default function Home() {
                 Pennywise helps you send money, track your spending, and save smarter — all in one beautifully simple app.
               </motion.p>
               <motion.div variants={fadeInUp} className="pt-2 flex flex-wrap items-center gap-4">
-                <Link to="/signup" className="px-6 py-3.5 rounded-xl bg-[#FF7F50] text-black font-bold text-xs uppercase font-mono tracking-wider hover:bg-[#ff8f66] transition-all flex items-center gap-2 group shadow-[0_4px_20px_rgba(255,127,80,0.2)]">
-                  Start free <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                {/* ✅ FIX: Added !text-black to fix contrast issue */}
+                <Link to="/signup" className="px-6 py-3.5 rounded-xl bg-[#FF7F50] !text-black font-bold text-xs uppercase font-mono tracking-wider hover:bg-[#ff8f66] transition-all flex items-center gap-2 group shadow-[0_4px_20px_rgba(255,127,80,0.2)]">
+                  Start free <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" aria-hidden="true" />
                 </Link>
                 <button className="px-6 py-3.5 rounded-xl border border-white/10 bg-white/[0.02] text-white/70 hover:text-white text-xs font-mono uppercase tracking-wider transition-all">
                   Learn more
@@ -154,7 +155,7 @@ export default function Home() {
 
             <motion.div variants={fadeInUp} className="lg:col-span-6">
               <div className="w-full bg-[#0d0d12] border border-white/[0.06] rounded-2xl p-5 sm:p-6 text-left shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#FF7F50]/20 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#FF7F50]/20 to-transparent" aria-hidden="true" />
                 <div className="flex justify-between items-start mb-8">
                   <div>
                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block">Your Balance</span>
@@ -162,7 +163,7 @@ export default function Home() {
                   </div>
                   <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold">Active</span>
                 </div>
-                <div className="h-28 w-full flex items-end gap-1.5 border-b border-white/5 pb-1 relative">
+                <div className="h-28 w-full flex items-end gap-1.5 border-b border-white/5 pb-1 relative" aria-hidden="true">
                   {chartBars.map((h, i) => (
                     <div key={i} className="w-full bg-gradient-to-t from-[#FF7F50]/5 to-[#FF7F50]/40 rounded-t-sm transition-all duration-500 group-hover:from-[#FF7F50]/10" style={{ height: `${h}%` }} />
                   ))}
@@ -231,7 +232,7 @@ export default function Home() {
                   <span className="text-[10px] text-gray-500 uppercase tracking-wider">Your Spending</span>
                   <span className="text-lg font-bold text-[#FF7F50]">+$4,210.05</span>
                 </div>
-                <div className="h-32 w-full bg-[#050507] rounded-lg border border-white/5 flex items-end p-4 gap-1">
+                <div className="h-32 w-full bg-[#050507] rounded-lg border border-white/5 flex items-end p-4 gap-1" aria-hidden="true">
                   {spendingBars.map((v, i) => (
                     <div key={i} className="w-full bg-[#FF7F50]/10 border-t-2 border-[#FF7F50] rounded-t-xs" style={{ height: `${v}%` }} />
                   ))}
@@ -274,7 +275,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold uppercase font-mono tracking-tight text-white">Budgets that stick.</h3>
                   <p className="text-base text-gray-300 mt-1 max-w-sm">Set limits that help you save more without feeling like you're missing out.</p>
                 </div>
-                <div className="h-36 w-full bg-[#050507] rounded-xl border border-white/5 mt-8 flex items-end p-4 gap-1 relative overflow-hidden">
+                <div className="h-36 w-full bg-[#050507] rounded-xl border border-white/5 mt-8 flex items-end p-4 gap-1 relative overflow-hidden" aria-hidden="true">
                   {budgetBars.map((val, i) => (
                     <div key={i} className="bg-gradient-to-t from-[#FF7F50]/20 to-[#FF7F50] rounded-t-sm w-full" style={{ height: `${val}%` }} />
                   ))}
@@ -303,14 +304,15 @@ export default function Home() {
         {/* CTA */}
         <section className="py-16 border-t border-white/[0.05]">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} className="w-full bg-gradient-to-b from-white/[0.01] to-transparent border border-white/[0.06] rounded-2xl p-10 md:p-14 text-center relative overflow-hidden">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-[#FF7F50]/5 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[200px] bg-[#FF7F50]/5 blur-[100px] rounded-full pointer-events-none" aria-hidden="true" />
             <div className="max-w-md mx-auto space-y-6 relative z-10">
               <motion.h2 variants={fadeInUp} className="text-4xl font-bold tracking-tight text-white uppercase">Ready to take control?</motion.h2>
               <motion.p variants={fadeInUp} className="text-lg text-gray-300 font-mono leading-relaxed">
                 Join 95,000+ people who've taken charge of their money. No credit checks, no hidden fees — just smart banking.
               </motion.p>
               <motion.div variants={fadeInUp} className="pt-2 flex flex-wrap items-center justify-center gap-4">
-                <Link to="/signup" className="px-8 py-4 rounded-xl bg-[#FF7F50] text-black font-bold text-xs font-mono uppercase tracking-widest hover:bg-[#ff8f66] transition-all cursor-pointer shadow-[0_4px_25px_rgba(255,127,80,0.3)]">
+                {/* ✅ FIX: Added !text-black to fix contrast issue */}
+                <Link to="/signup" className="px-8 py-4 rounded-xl bg-[#FF7F50] !text-black font-bold text-xs font-mono uppercase tracking-widest hover:bg-[#ff8f66] transition-all cursor-pointer shadow-[0_4px_25px_rgba(255,127,80,0.3)]">
                   Get started now
                 </Link>
                 <button className="px-8 py-4 rounded-xl border border-white/10 text-white/70 hover:text-white text-xs font-mono uppercase tracking-wider transition-all">
@@ -328,11 +330,20 @@ export default function Home() {
             <p className="text-base text-gray-300 max-w-xs leading-relaxed font-mono">
               The smart way to send money, track spending, and save for what matters most.
             </p>
+            {/* ✅ FIX: Wrapped social icons in <a> tags with aria-labels */}
             <div className="flex items-center gap-3 text-gray-600 pt-1">
-              <Facebook className="w-4 h-4 hover:text-[#FF7F50] transition-colors cursor-pointer" />
-              <Twitter className="w-4 h-4 hover:text-[#FF7F50] transition-colors cursor-pointer" />
-              <Instagram className="w-4 h-4 hover:text-[#FF7F50] transition-colors cursor-pointer" />
-              <Linkedin className="w-4 h-4 hover:text-[#FF7F50] transition-colors cursor-pointer" />
+              <a href="#" aria-label="Facebook" className="hover:text-[#FF7F50] transition-colors">
+                <Facebook className="w-4 h-4" aria-hidden="true" />
+              </a>
+              <a href="#" aria-label="Twitter" className="hover:text-[#FF7F50] transition-colors">
+                <Twitter className="w-4 h-4" aria-hidden="true" />
+              </a>
+              <a href="#" aria-label="Instagram" className="hover:text-[#FF7F50] transition-colors">
+                <Instagram className="w-4 h-4" aria-hidden="true" />
+              </a>
+              <a href="#" aria-label="LinkedIn" className="hover:text-[#FF7F50] transition-colors">
+                <Linkedin className="w-4 h-4" aria-hidden="true" />
+              </a>
             </div>
           </div>
           <div className="space-y-3">

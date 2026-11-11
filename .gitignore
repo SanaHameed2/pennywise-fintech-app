@@ -15,3 +15,10 @@ coverage/
 *.ps1
 supabase/.temp/
 dev-dist/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

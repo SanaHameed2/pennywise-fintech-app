@@ -12,7 +12,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import SavingsGoalModal from '../components/SavingsGoalModal';
-import { NotificationPanel } from '../components/NotificationPanel'; // ✅ ADDED
+import { NotificationPanel } from '../components/NotificationPanel';
 import {
   ResponsiveContainer,
   PieChart,
@@ -77,7 +77,7 @@ const QuickActionCard = React.memo(({ icon: Icon, label, to, color = '#FF7F50', 
         group-hover:scale-110 transition-all duration-300"
         style={{ background: `${color}15`, borderColor: `${color}30`, border: '1px solid' }}
       >
-        <Icon className="w-5 h-5" style={{ color }} />
+        <Icon className="w-5 h-5" style={{ color }} aria-hidden="true" />
       </div>
       <p className="text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
         {label}
@@ -99,7 +99,7 @@ const MetricCard = React.memo(({ label, value, icon: Icon, change, changeType = 
         hover:shadow-xl hover:shadow-[#FF7F50]/5"
     >
       <div className="flex items-center gap-2 mb-1">
-        <Icon className="w-4 h-4 text-[#FF7F50]" />
+        <Icon className="w-4 h-4 text-[#FF7F50]" aria-hidden="true" />
         <p className="text-[10px] uppercase tracking-wider text-white/40">{label}</p>
       </div>
       <p className="text-xl font-bold text-white">
@@ -109,7 +109,7 @@ const MetricCard = React.memo(({ label, value, icon: Icon, change, changeType = 
         <p className={`text-xs flex items-center gap-1 mt-1.5 ${
           changeType === 'up' ? 'text-[#34D399]' : 'text-[#EF4444]'
         }`}>
-          {changeType === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+          {changeType === 'up' ? <TrendingUp className="w-3 h-3" aria-hidden="true" /> : <TrendingDown className="w-3 h-3" aria-hidden="true" />}
           {change}
         </p>
       )}
@@ -134,7 +134,7 @@ const TransactionItem = React.memo(({ transaction, index }: { transaction: any; 
     >
       <div className="flex items-center gap-4">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${bgColor} border`}>
-          <Icon className="w-4 h-4" style={{ color: iconColor }} />
+          <Icon className="w-4 h-4" style={{ color: iconColor }} aria-hidden="true" />
         </div>
         <div>
           <p className="text-sm font-semibold text-white/80 group-hover:text-white transition">
@@ -189,13 +189,13 @@ const SavingsGoalItem = React.memo(({ goal, onAction }: {
           onClick={() => onAction('contribute', goal)}
           className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition flex items-center justify-center gap-1"
         >
-          <Plus className="w-3 h-3" /> {t('dashboard.contribute', 'Contribute')}
+          <Plus className="w-3 h-3" aria-hidden="true" /> {t('dashboard.contribute', 'Contribute')}
         </button>
         <button
           onClick={() => onAction('withdraw', goal)}
           className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 transition flex items-center justify-center gap-1"
         >
-          <Minus className="w-3 h-3" /> {t('dashboard.withdrawGoal', 'Withdraw')}
+          <Minus className="w-3 h-3" aria-hidden="true" /> {t('dashboard.withdrawGoal', 'Withdraw')}
         </button>
       </div>
     </div>
@@ -206,7 +206,7 @@ SavingsGoalItem.displayName = 'SavingsGoalItem';
 const ExpenseCategoryItem = React.memo(({ category }: { category: any }) => {
   return (
     <div className="flex items-center gap-3">
-      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: category.color }} />
+      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: category.color }} aria-hidden="true" />
       <div className="flex-1">
         <div className="flex justify-between text-xs">
           <span className="text-white/60">{category.name}</span>
@@ -312,7 +312,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#070707] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#FF7F50] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#FF7F50] border-t-transparent rounded-full animate-spin" aria-label="Loading dashboard" />
       </div>
     );
   }
@@ -341,14 +341,14 @@ export default function Dashboard() {
           </Link>
 
           <div className="flex items-center gap-3">
-            {/* ✅ REPLACED STATIC BELL WITH REAL NOTIFICATION PANEL */}
             <NotificationPanel />
             
             <button
               onClick={() => handleNavigate('/settings')}
+              aria-label="Open settings"
               className="p-2 rounded-xl hover:bg-white/5 transition-colors"
             >
-              <Settings className="w-5 h-5 text-white/60 hover:text-white/90 transition" />
+              <Settings className="w-5 h-5 text-white/60 hover:text-white/90 transition" aria-hidden="true" />
             </button>
             <div className="w-px h-8 bg-white/10" />
             <div className="flex items-center gap-2.5">
@@ -378,19 +378,19 @@ export default function Dashboard() {
               {new Date().getHours() < 12 ? t('dashboard.greetingMorning') :
                new Date().getHours() < 18 ? t('dashboard.greetingAfternoon') :
                t('dashboard.greetingEvening')}, {displayName}
-              <span className="inline-block ms-2 animate-pulse">👋</span>
+              <span className="inline-block ms-2 animate-pulse" aria-hidden="true">👋</span>
             </h1>
             <p className="text-sm text-white/40 flex items-center gap-2 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" aria-hidden="true" />
               {t('dashboard.systemNormal', 'Your financial system is operating normally.')}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-white/50 flex items-center gap-1.5">
-              <Shield className="w-3 h-3 text-[#FF7F50]" /> {t('dashboard.bankGrade', 'Bank-grade')}
+              <Shield className="w-3 h-3 text-[#FF7F50]" aria-hidden="true" /> {t('dashboard.bankGrade', 'Bank-grade')}
             </span>
             <span className="text-xs px-3 py-1.5 rounded-full bg-[#FF7F50]/10 text-[#FF7F50] border border-[#FF7F50]/20 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3" /> {t('dashboard.premium', 'Premium')}
+              <Sparkles className="w-3 h-3" aria-hidden="true" /> {t('dashboard.premium', 'Premium')}
             </span>
           </div>
         </motion.div>
@@ -406,7 +406,7 @@ export default function Dashboard() {
             variants={fadeIn}
             className="bg-gradient-to-br from-[#0D0D12] to-[#1A1A24] border border-white/5 rounded-[24px] p-6 shadow-2xl relative overflow-hidden group"
           >
-            <div className="absolute -top-20 -end-20 w-40 h-40 bg-[#FF7F50]/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+            <div className="absolute -top-20 -end-20 w-40 h-40 bg-[#FF7F50]/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" aria-hidden="true" />
             <div className="relative z-10">
               <div className="flex items-start justify-between">
                 <div>
@@ -419,17 +419,18 @@ export default function Dashboard() {
                     </p>
                     <button
                       onClick={handleToggleBalance}
+                      aria-label={showBalance ? "Hide balance" : "Show balance"}
                       className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                     >
-                      {showBalance ? <Eye className="w-3.5 h-3.5 text-white/40" /> : <EyeOff className="w-3.5 h-3.5 text-white/40" />}
+                      {showBalance ? <Eye className="w-3.5 h-3.5 text-white/40" aria-hidden="true" /> : <EyeOff className="w-3.5 h-3.5 text-white/40" aria-hidden="true" />}
                     </button>
                   </div>
                   <p className="text-sm text-[#34D399] flex items-center gap-1.5 mt-1">
-                    <TrendingUp className="w-4 h-4" /> ↑ {growth}% <span className="text-white/30 text-xs">{t('dashboard.vsLastMonth', 'vs last month')}</span>
+                    <TrendingUp className="w-4 h-4" aria-hidden="true" /> ↑ {growth}% <span className="text-white/30 text-xs">{t('dashboard.vsLastMonth', 'vs last month')}</span>
                   </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-[#FF7F50]/10 border border-[#FF7F50]/20 flex items-center justify-center">
-                  <Wallet className="w-6 h-6 text-[#FF7F50]" />
+                  <Wallet className="w-6 h-6 text-[#FF7F50]" aria-hidden="true" />
                 </div>
               </div>
             </div>
@@ -458,7 +459,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-[#A78BFA]/10 border border-[#A78BFA]/20 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-[#A78BFA]" />
+                <TrendingUp className="w-6 h-6 text-[#A78BFA]" aria-hidden="true" />
               </div>
             </div>
           </motion.div>
@@ -494,7 +495,7 @@ export default function Dashboard() {
         {/* ─── QUICK ACTIONS ─── */}
         <div>
           <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold mb-4 flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5" /> {t('dashboard.quickActions')}
+            <Zap className="w-3.5 h-3.5" aria-hidden="true" /> {t('dashboard.quickActions')}
           </h2>
           <motion.div
             variants={stagger}
@@ -536,10 +537,10 @@ export default function Dashboard() {
           transition={{ duration: 0.5 }}
           className="bg-gradient-to-br from-[#FF7F50]/5 via-[#A78BFA]/5 to-transparent border border-[#FF7F50]/10 rounded-[24px] shadow-2xl p-6 relative overflow-hidden group"
         >
-          <div className="absolute top-0 end-0 w-64 h-64 bg-[#FF7F50]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+          <div className="absolute top-0 end-0 w-64 h-64 bg-[#FF7F50]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" aria-hidden="true" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FF7F50]/10 border border-[#FF7F50]/20 flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="w-5 h-5 text-[#FF7F50]" />
+              <AlertCircle className="w-5 h-5 text-[#FF7F50]" aria-hidden="true" />
             </div>
             <div className="flex-1">
               <p className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold">
@@ -552,7 +553,7 @@ export default function Dashboard() {
             </div>
             <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium whitespace-nowrap">
               {t('dashboard.viewReport', 'View Report')} 
-              <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+              <ChevronRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
             </button>
           </div>
         </motion.div>
@@ -625,7 +626,7 @@ export default function Dashboard() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
-                <Target className="w-3.5 h-3.5" /> {t('dashboard.savingsGoals')}
+                <Target className="w-3.5 h-3.5" aria-hidden="true" /> {t('dashboard.savingsGoals')}
               </h2>
               <span className="text-xs text-white/40">
                 {t('dashboard.trackProgress', 'Track your progress')}
@@ -662,11 +663,11 @@ export default function Dashboard() {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[10px] uppercase tracking-[0.2em] text-[#FF7F50] font-semibold flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5" /> {t('dashboard.recentTransactions')}
+              <Calendar className="w-3.5 h-3.5" aria-hidden="true" /> {t('dashboard.recentTransactions')}
             </h2>
             <Link to="/transactions" className="text-xs text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1 font-medium">
               {t('dashboard.viewAll')} 
-              <ArrowUpRight size={14} className="rtl:-scale-x-100" />
+              <ArrowUpRight size={14} className="rtl:-scale-x-100" aria-hidden="true" />
             </Link>
           </div>
 
@@ -690,7 +691,7 @@ export default function Dashboard() {
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#FF7F50]/10 border border-[#FF7F50]/20 flex items-center justify-center flex-shrink-0">
-              <Shield className="w-5 h-5 text-[#FF7F50]" />
+              <Shield className="w-5 h-5 text-[#FF7F50]" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm font-semibold text-white">
@@ -703,7 +704,7 @@ export default function Dashboard() {
           </div>
           <button className="text-sm text-[#FF7F50] hover:text-[#FF7F50]/80 transition flex items-center gap-1.5 font-medium">
             {t('dashboard.learnMore', 'Learn more')} 
-            <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+            <ChevronRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
           </button>
         </motion.div>
 

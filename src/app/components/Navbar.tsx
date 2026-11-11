@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { LanguageToggle } from '../../components/LanguageToggle';
-import { NotificationPanel } from './NotificationPanel'; // ✅ ADDED
+import { NotificationPanel } from './NotificationPanel';
 import {
   Settings,
   LogOut,
@@ -39,7 +39,8 @@ const NavLink = memo(({
         isActive ? 'text-[#FF7F50]' : 'text-white/70 hover:text-white'
       }`}
     >
-      <Icon className="w-4 h-4" />
+      {/* ✅ FIX: Decorative icon hidden from screen readers */}
+      <Icon className="w-4 h-4" aria-hidden="true" />
       {label}
     </Link>
   );
@@ -69,7 +70,8 @@ const MobileNavLink = memo(({
           : 'text-white/70 hover:text-white hover:bg-white/5'
       }`}
     >
-      <Icon className="w-4 h-4" />
+      {/* ✅ FIX: Decorative icon hidden from screen readers */}
+      <Icon className="w-4 h-4" aria-hidden="true" />
       {label}
     </Link>
   );
@@ -127,7 +129,7 @@ const Navbar = memo(() => {
               <span className="text-[#FF7F50]">Pennywise</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Loader2 className="w-5 h-5 text-[#FF7F50] animate-spin" />
+              <Loader2 className="w-5 h-5 text-[#FF7F50] animate-spin" aria-hidden="true" />
               <span className="text-sm text-white/50 hidden sm:inline">
                 {t('common.loading')}
               </span>
@@ -164,13 +166,12 @@ const Navbar = memo(() => {
 
             {user ? (
               <div className="flex items-center gap-4 ms-4 ps-4 border-s border-white/10">
-                {/* ✅ NOTIFICATION BELL FOR DESKTOP */}
                 <NotificationPanel />
                 
                 <LanguageToggle />
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-[#FF7F50]/20 flex items-center justify-center">
-                    <User className="w-3.5 h-3.5 text-[#FF7F50]" />
+                    <User className="w-3.5 h-3.5 text-[#FF7F50]" aria-hidden="true" />
                   </div>
                   <span className="text-sm text-white/70">
                     {user?.user_metadata?.full_name || 'User'}
@@ -182,9 +183,9 @@ const Navbar = memo(() => {
                   className="text-white/70 hover:text-white transition-colors text-sm flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoggingOut ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                   ) : (
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
                   )}
                   {isLoggingOut ? t('common.loading') : t('nav.logout')}
                 </button>
@@ -200,7 +201,7 @@ const Navbar = memo(() => {
                 </Link>
                 <Link
                   to="/signup"
-                  className="bg-[#FF7F50] hover:bg-[#ff8f66] text-black font-semibold text-sm px-4 py-2 rounded-xl transition-all shadow-[0_4px_20px_rgba(255,127,80,0.2)]"
+                  className="bg-[#FF7F50] hover:bg-[#ff8f66] !text-black font-semibold text-sm px-4 py-2 rounded-xl transition-all shadow-[0_4px_20px_rgba(255,127,80,0.2)]"
                 >
                   {t('nav.signup')}
                 </Link>
@@ -210,14 +211,19 @@ const Navbar = memo(() => {
 
           {/* Mobile Right Side (Notification + Hamburger) */}
           <div className="flex md:hidden items-center gap-2">
-            {/* ✅ NOTIFICATION BELL FOR MOBILE TOP BAR */}
             {user && <NotificationPanel />}
             
+            {/* ✅ FIX: Added aria-label for screen readers */}
             <button
               onClick={toggleMobileMenu}
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/5 transition-all"
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5" aria-hidden="true" />
+              ) : (
+                <Menu className="w-5 h-5" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
@@ -245,7 +251,7 @@ const Navbar = memo(() => {
               <>
                 <div className="flex items-center gap-3 px-4 py-3 border-t border-white/5 mt-2 pt-4">
                   <div className="w-8 h-8 rounded-full bg-[#FF7F50]/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-[#FF7F50]" />
+                    <User className="w-4 h-4 text-[#FF7F50]" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm text-white font-medium">
@@ -263,9 +269,9 @@ const Navbar = memo(() => {
                   className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoggingOut ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                   ) : (
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
                   )}
                   {isLoggingOut ? t('common.loading') : t('nav.logout')}
                 </button>
@@ -285,7 +291,7 @@ const Navbar = memo(() => {
                 <Link
                   to="/signup"
                   onClick={closeMobileMenu}
-                  className="flex items-center justify-center px-4 py-3 rounded-xl text-sm bg-[#FF7F50] text-black font-semibold hover:bg-[#ff8f66] transition-all"
+                  className="flex items-center justify-center px-4 py-3 rounded-xl text-sm bg-[#FF7F50] !text-black font-semibold hover:bg-[#ff8f66] transition-all"
                 >
                   {t('nav.signup')}
                 </Link>

@@ -67,9 +67,9 @@ export default defineConfig({
     })
   ],
   
-  // ✅ FIX: Removed manualChunks to prevent circular dependency errors
   build: {
     chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true, // ✅ ADDED: Splits CSS into separate files per chunk for better performance
   },
 
   test: {
