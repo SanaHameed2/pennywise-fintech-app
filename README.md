@@ -6,10 +6,26 @@
 </p>
 
 <p align="center">
-  <a href="https://pennywise-fintech-app.vercel.app/">Live Demo</a> •
-  <a href="https://github.com/SanaHameed2/pennywise-fintech-app">GitHub Repository</a> •
-  <a href="https://sana-portfolio-weld.vercel.app/">Developer Portfolio</a>
+  <a href="https://pennywise-fintech-app.vercel.app/"><b>Live Demo</b></a> • 
+  <a href="https://github.com/SanaHameed2/pennywise-fintech-app"><b>Repository</b></a> • 
+  <a href="https://sana-portfolio-weld.vercel.app/"><b>Portfolio</b></a>
 </p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+</p>
+
+---
+
+## 🎥 Project Showcase
+
+[![Pennywise Demo Video](docs/thumbnail.png)](https://www.youtube.com/watch?v=J4wbLWFqNXs)
+
+*Click the image above to watch a 2-minute video walkthrough of the core features.*
 
 ---
 
@@ -22,6 +38,20 @@ Traditional banking experiences can often feel outdated, complicated, and discon
 Developed over six months of planning, implementation, debugging, and continuous refinement, Pennywise focuses on delivering an interface that doesn't just look premium but provides a smooth and intuitive financial experience.
 
 The project explores modern fintech architecture through React, TypeScript, and Supabase, combining interactive frontend experiences with database-driven backend functionality.
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+  <img src="docs/dashboard.png" alt="Dashboard UI" width="800"/>
+  <p><i>Dashboard - Real-time financial overview and charts</i></p>
+  
+  <img src="docs/transfer.png" alt="Transfer Wizard" width="800"/>
+  <p><i>Secure Money Transfer Workflow with OTP</i></p>
+</div>
+
+---
 
 ## ✨ Core Features
 
@@ -129,105 +159,3 @@ Make sure you have the following installed:
 
 ```bash
 git clone https://github.com/SanaHameed2/pennywise-fintech-app.git
-```
-
-### 2. Navigate to the Project
-
-```bash
-cd pennywise-fintech-app
-```
-
-### 3. Install Dependencies
-
-```bash
-npm install
-```
-
-### 4. Configure Environment Variables
-
-Create a `.env.local` file in the project root and configure your Supabase credentials using the variable names specified in `env.example`.
-
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-VITE_APP_URL=http://localhost:5173
-VITE_APP_NAME=Pennywise
-```
-
-### 5. Configure Supabase
-
-1. Create a Supabase project.
-2. Configure authentication settings.
-3. Apply the SQL migrations from `supabase/migrations/`.
-4. Configure the required database policies and services.
-
-### 6. Run the Development Server
-
-```bash
-npm run dev
-```
-
-Open the local development URL provided by Vite.
-
-### 7. Build for Production
-
-```bash
-npm run build
-```
-
-## 🤖 AI-Assisted Development
-
-AI-assisted development tools played an important role in accelerating the Pennywise development workflow.
-
-Tools used:
-
-- **Cursor AI:** Code assistance, implementation, and debugging.
-- **Claude:** Architecture discussions, code refinement, and development problem-solving.
-
-AI-assisted workflows helped with:
-
-- Accelerating implementation.
-- Optimizing manual code-splitting.
-- Improving code organization.
-- Identifying and resolving development issues.
-- Refining application performance.
-
-AI was used as a development assistant alongside hands-on engineering, integration, and verification.
-
-## 📌 Project Status
-
-**Pennywise is an ongoing development project.**
-
-The application has evolved through six months of planning, development, experimentation, and refinement.
-
-Continuous development focuses on:
-
-- Backend reliability and integration.
-- Transaction workflow improvements.
-- Financial data management.
-- Security enhancements.
-- User experience optimization.
-- Additional fintech functionality.
-
-## 🔮 Project Vision
-
-The long-term vision for Pennywise is to create a more intuitive, accessible, and transparent personal finance experience.
-
-By combining modern web technologies, thoughtful interface design, secure transaction workflows, and localized accessibility, Pennywise explores a more user-friendly direction for digital financial applications in Pakistan.
-
-## 👩‍💻 Developed By
-
-**Sana Hameed**  
-Full-Stack Developer & Web Engineer
-
-- Portfolio: https://sana-portfolio-weld.vercel.app/
-- GitHub: https://github.com/SanaHameed2
-
----
-
-<p align="center">
-  Built with 💙, curiosity, and a passion for modern web engineering.
-  <br/>
-  <strong>Pennywise — A Smarter Way to Experience Personal Finance.</strong>
-</p>
-
