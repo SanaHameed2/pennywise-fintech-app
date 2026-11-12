@@ -17,7 +17,26 @@
   <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+  <a href="https://pennywise-fintech-app.vercel.app/"><b>Live Demo</b></a> • 
+  <a href="https://github.com/SanaHameed2/pennywise-fintech-app"><b>Repository</b></a> • 
+  <a href="https://sana-portfolio-weld.vercel.app/"><b>Portfolio</b></a>
 </p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+</p>
+
+---
+
+## 🎥 Project Showcase
+
+[![Pennywise Demo Video](docs/thumbnail.png)](https://www.youtube.com/watch?v=J4wbLWFqNXs)
+
+*Click the image above to watch a 2-minute video walkthrough of the core features.*
 
 ---
 
@@ -38,6 +57,20 @@ Traditional banking experiences can often feel outdated, complicated, and discon
 Developed over six months of planning, implementation, debugging, and continuous refinement, Pennywise focuses on delivering an interface that doesn't just look premium but provides a smooth and intuitive financial experience.
 
 The project explores modern fintech architecture through React, TypeScript, and Supabase, combining interactive frontend experiences with database-driven backend functionality.
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+  <img src="docs/dashboard.png" alt="Dashboard UI" width="800"/>
+  <p><i>Dashboard - Real-time financial overview and charts</i></p>
+  
+  <img src="docs/transfer.png" alt="Transfer Wizard" width="800"/>
+  <p><i>Secure Money Transfer Workflow with OTP</i></p>
+</div>
+
+---
 
 ---
 
