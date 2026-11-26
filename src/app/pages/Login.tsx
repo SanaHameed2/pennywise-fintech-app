@@ -1,0 +1,271 @@
+// src/app/pages/Login.tsx
+import React, { useState, useCallback, useMemo } from 'react';
+import { motion } from 'motion/react';
+import { useTranslation } from 'react-i18next';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield, Smartphone, CheckCircle2, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth, validateEmail, validatePassword } from '../../hooks/useAuth';
+
+const TrustBadge = React.memo(({ icon: Icon, label }: { icon: React.ElementType; label: string }) => {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon className="w-3.5 h-3.5 text-[#FF7F50]" />
+      <span>{label}</span>
+    </div>
+  );
+});
+TrustBadge.displayName = 'TrustBadge';
+
+export default function Login() {
+  const navigate = useNavigate();
+  const { login, loginAsGuest } = useAuth();
+  const { t } = useTranslation();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!validateEmail(email)) {
+      setError(t('auth.invalidEmail'));
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setError(t('auth.invalidPassword'));
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        if (result.error?.includes('Email not confirmed') || result.error?.includes('email_not_confirmed')) {
+          setError(t('auth.emailNotConfirmed'));
+        } else {
+          setError(result?.error || t('auth.invalidCredentials'));
+        }
+      }
+    } catch {
+      setError(t('auth.somethingWrong'));
+    } finally {
+      setLoading(false);
+    }
+  }, [email, password, login, navigate, t]);
+
+  const handleDemoLogin = useCallback(async () => {
+    setError('');
+    setDemoLoading(true);
+
+    try {
+      const result = await loginAsGuest();
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result?.error || t('auth.demoFailed'));
+      }
+    } catch {
+      setError(t('auth.somethingWrong'));
+    } finally {
+      setDemoLoading(false);
+    }
+  }, [loginAsGuest, navigate, t]);
+
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    setError('');
+  }, []);
+
+  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    setError('');
+  }, []);
+
+  const trustBadges = useMemo(() => [
+    { icon: Shield, label: t('auth.trustBadge1') },
+    { icon: Smartphone, label: t('auth.trustBadge2') },
+    { icon: CheckCircle2, label: t('auth.trustBadge3') },
+  ], [t]);
+
+  const fadeIn = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  return (
+    <div className="min-h-screen bg-[#050507] text-white overflow-x-hidden relative selection:bg-[#FF7F50]/20 antialiased font-sans flex items-center justify-center p-4">
+      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-[#FF7F50]/10 to-transparent blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[30%] right-[-10%] w-[600px] h-[600px] bg-[#FF7F50]/4 blur-[160px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[20%] left-[-10%] w-[500px] h-[500px] bg-[#FF7F50]/3 blur-[160px] rounded-full pointer-events-none z-0" />
+
+      <div className="max-w-md w-full relative z-10">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="bg-[#0d0d12] border border-white/[0.06] rounded-2xl p-8 shadow-2xl space-y-6"
+        >
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#FF7F50]/20 bg-[#FF7F50]/5 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF7F50] animate-pulse" />
+              <span className="text-[11px] font-mono tracking-widest uppercase text-[#FF7F50] font-bold">
+                {t('auth.welcomeBack')}
+              </span>
+            </div>
+            <h1 className="text-3xl font-bold text-white tracking-tight">
+              {t('auth.loginTitle')}
+            </h1>
+            <p className="text-sm text-gray-400">
+              {t('auth.loginSubtitle')}
+            </p>
+          </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              role="alert"
+              className="p-3 bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl text-center"
+            >
+              {error}
+            </motion.div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={demoLoading || loading}
+            aria-busy={demoLoading}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 text-emerald-400 font-semibold py-3 rounded-xl hover:bg-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            {demoLoading ? (
+              <div className="w-4 h-4 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4" /> {t('auth.tryDemo')}
+              </>
+            )}
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-[#0d0d12] px-3 text-gray-400">{t('auth.orSignIn')}</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                {t('auth.email')}
+              </label>
+              <div className="relative">
+                {/* ✅ RTL Fix: left-3.5 to start-3.5, pl-11 to ps-11 */}
+                <Mail aria-hidden="true" className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder="you@email.com"
+                  className="w-full ps-11 pe-4 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition-all"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between items-center">
+                <label htmlFor="password" className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  {t('auth.password')}
+                </label>
+                <Link to="/forgot-password" className="text-xs text-[#FF7F50] hover:text-[#ff8f66] transition">
+                  {t('auth.forgotPassword')}
+                </Link>
+              </div>
+              <div className="relative">
+                {/* ✅ RTL Fix: left-3.5 to start-3.5, pl-11 to ps-11, pr-11 to pe-11 */}
+                <Lock aria-hidden="true" className="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={handlePasswordChange}
+                  placeholder="••••••••"
+                  className="w-full ps-11 pe-11 py-3 rounded-xl border border-white/10 bg-white/5 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:border-[#FF7F50] focus:ring-2 focus:ring-[#FF7F50]/20 transition-all"
+                  dir="ltr"
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+                  aria-pressed={showPassword}
+                  className="absolute end-1.5 top-1/2 -translate-y-1/2 p-2.5 rounded-lg text-gray-400 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FF7F50]"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || demoLoading}
+              className="w-full bg-[#FF7F50] hover:bg-[#ff8f66] disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_rgba(255,127,80,0.2)] flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              ) : (
+                <>
+                  {t('auth.signIn')} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-400">
+              {t('auth.newToPennywise')}{' '}
+              <Link to="/signup" className="text-[#FF7F50] hover:text-[#ff8f66] font-semibold transition">
+                {t('auth.createAccount')}
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400 font-mono"
+        >
+          {trustBadges.map((badge, idx) => (
+            <React.Fragment key={idx}>
+              <TrustBadge icon={badge.icon} label={badge.label} />
+              {idx < trustBadges.length - 1 && <span className="text-gray-700">•</span>}
+            </React.Fragment>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
