@@ -51,7 +51,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install psycopg2-binary
-      - run: ./supabase/tests/run.sh
+      - run: bash ./supabase/tests/run.sh
 
   e2e:
     name: End-to-end + accessibility (real browser, mocked backend)
