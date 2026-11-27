@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './providers/ToastProvider';
+import { LanguageAnnouncer } from './components/LanguageAnnouncer';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import './lib/i18n';   // ✅ i18n init (must be before App render)
 import '@fontsource/inter/400.css';
@@ -41,8 +42,9 @@ ReactDOM.createRoot(rootElement).render(
               <Suspense fallback={<LoadingSpinner />}>
                 <RouterProvider router={router} />
               </Suspense>
-              
+
               <ToastProvider />
+              <LanguageAnnouncer />
             </AuthProvider>
           </MotionConfig>
         </QueryProvider>
