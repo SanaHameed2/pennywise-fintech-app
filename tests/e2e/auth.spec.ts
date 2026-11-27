@@ -25,7 +25,9 @@ test('forgot-password never reveals whether an account exists', async ({ page })
   await page.goto('/forgot-password');
   await page.getByLabel(/email/i).fill('nobody@example.com');
   await page.getByRole('button', { name: /Send reset link/i }).click();
-  await expect(page.getByRole('status')).toContainText(/If an account exists/i);
+  await expect(
+    page.getByRole('status').filter({ hasText: /If an account exists/i })
+  ).toBeVisible();
 });
 
 test('the footer has no dead (#) links and claims nothing it cannot back up', async ({ page }) => {
