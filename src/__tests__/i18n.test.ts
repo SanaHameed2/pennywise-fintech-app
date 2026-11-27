@@ -56,7 +56,7 @@ describe('translations', () => {
   });
 
   it('makes no unverifiable claims (regulators, certifications, user counts)', () => {
-    const forbidden = /bank-grade|256-bit|FDIC|SOC ?2|PCI|licensed by|regulated by|\d{2,3},\d{3}\+/i;
+    const forbidden = /bank-grade|256-bit|cryptographic|military|FDIC|SOC ?2|PCI|licensed by|regulated by|\d{2,3},\d{3}\+/i;
     const hits = Object.entries(fe).filter(([, v]) => forbidden.test(v) && !/not (a bank|licensed)/i.test(v));
     expect(hits).toEqual([]);
   });

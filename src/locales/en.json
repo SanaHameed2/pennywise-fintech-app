@@ -128,7 +128,7 @@
     "addNote": "Add a note (optional)…",
     "reviewTransfer": "Review Transfer",
     "securePin": "Secure PIN Verification",
-    "enterPin": "Authorise this transfer with your 6-digit cryptographic PIN",
+    "enterPin": "Authorise this transfer with your 6-digit transaction PIN.",
     "sendOtp": "Send OTP (Simulated)",
     "enterOtp": "Enter 6-digit OTP",
     "stepUpOtp": "Step-up OTP Verification",
@@ -451,7 +451,8 @@
   },
   "a11y": {
     "skipToContent": "Skip to main content",
-    "switchLanguage": "Switch language to {{language}}"
+    "switchLanguage": "Switch language to {{language}}",
+    "languageChanged": "Language changed to English"
   },
   "footer": {
     "tagline": "A sandbox digital wallet: send money to saved beneficiaries, set budgets and savings goals, in English or Urdu. Built as a portfolio project; all money is simulated.",

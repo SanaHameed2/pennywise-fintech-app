@@ -52,9 +52,9 @@ describe('app shell', () => {
     expect(screen.getByRole('main')).toHaveFocus();
   });
 
-  it('language toggle accessible name is its visible text (the language you switch to)', () => {
+  it('language toggle is named by an English word so any screen-reader voice can speak it', () => {
     wrap(<LanguageToggle />);
-    expect(screen.getByRole('button', { name: /اردو/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Urdu' })).toBeInTheDocument();
   });
 
   it('notification bell reports the unread count, opens a region and closes on Escape', async () => {

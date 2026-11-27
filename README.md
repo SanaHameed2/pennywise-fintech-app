@@ -86,7 +86,7 @@ tests/e2e            Playwright specs + fake Supabase backend
 
 - Money is simulated; there is no payment-provider integration.
 - "Cards" are sample cards (not stored). Transaction descriptions written by the server are in English.
-- Manual testing with screen readers (NVDA, VoiceOver, TalkBack) is ongoing; automated checks cannot replace it.
+- Manual testing with screen readers (NVDA, VoiceOver, TalkBack) is ongoing; see the Accessibility Testing Log for real-world results.
 
 ## License
 

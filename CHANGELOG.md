@@ -22,8 +22,9 @@
 ### Added
 - Transaction PIN management, authenticator step-up in the wizard, forgot/reset password, About page (sandbox notice, security, accessibility), real insights and categories.
 - Accessibility: skip link, landmarks, route focus + page titles, labelled controls, live announcements, `inert` flip-cards, chart data tables, AA contrast, native-`<dialog>` modals, WAI-ARIA tabs, reduced-motion support.
+- Language switch (shaped by a real NVDA session): the in-progress transfer is kept, keyboard activation hands focus back to the control the user was working on, the announcement is bilingual (English first, so it is audible without an Urdu voice), and the button is named by an English word; `docs/ACCESSIBILITY_TESTING.md` records what is and is not verified by humans.
 - A real PWA: web manifest, brand icons (incl. maskable), offline app shell via a service worker (account data is never cached), offline notice, social-preview image.
-- Test suites: 72 database checks, 120 unit/component tests, 33 Playwright tests (real Chromium), axe (WCAG 2.2 AA incl. contrast) on every page in both languages.
+- Test suites: 72 database checks, 126 unit/component tests, 34 Playwright tests (real Chromium), axe (WCAG 2.2 AA incl. contrast) on every page in both languages.
 
 ### Changed
 - Bundle: main 628 kB to 114 kB, Dashboard 418 kB to 32 kB (charts lazy-loaded, vendor chunks split).
